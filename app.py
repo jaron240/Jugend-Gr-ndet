@@ -1626,19 +1626,19 @@ with tab6:
                 team_name = team_match.iloc[0]['team_name']
         st.success(f"👥 **Team:** {team_name}")
 
-    # Team-Funktionen
-    col1, col2, col3, col4 = st.columns(4)
+    # Team-Funktionen - Getrennt nach Erstellen und Beitreten
+    col1, col2 = st.columns(2)
 
     with col1:
-        if st.button("🔒 Privat", use_container_width=True):
+        st.markdown("### ➕ Team erstellen")
+        if st.button("🔒 Privatmodus", use_container_width=True):
             st.session_state.team_code = None
             st.session_state.private_mode = True
-            st.success("🔒 Privatmodus!")
+            st.success("🔒 Privatmodus aktiviert!")
             st.rerun()
 
-    with col2:
         team_name_input = st.text_input("Team-Name", key="team_name_minimal", placeholder="z.B. Jugend Gründet Team")
-        if st.button("➕ Team erstellen", use_container_width=True, disabled=not team_name_input.strip()):
+        if st.button("🎯 Team erstellen", use_container_width=True, disabled=not team_name_input.strip()):
             if team_name_input.strip():
                 # Validierung: Team-Name nicht zu lang
                 if len(team_name_input.strip()) > 50:
@@ -1655,14 +1655,21 @@ with tab6:
 
                     st.session_state.team_code = team_code
                     st.session_state.private_mode = False
-                    st.success(f"✅ Team '{team_name_input.strip()}' erstellt!")
-                    st.success(f"🔒 **Geheimer Team-Code:** {team_code}")
-                    st.info("📤 Teile diesen Code nur mit vertrauten Teammitgliedern!")
-                    st.rerun()
 
-    with col3:
+                    # Groß hervorheben des Team-Codes
+                    st.success(f"✅ Team '{team_name_input.strip()}' erstellt!")
+                    st.markdown(f"## 🔒 **Dein Team-Code:** `{team_code}`")
+                    st.warning("📤 **WICHTIG:** Teile diesen Code nur mit vertrauten Teammitgliedern!")
+                    st.info("Der Code ist geheim - niemand außer dir kann ihn sehen!")
+
+    with col2:
+        st.markdown("### 🔗 Team beitreten")
+        if st.button("🔄 Aktualisieren", use_container_width=True):
+            st.success("🔄 Ansicht aktualisiert!")
+            st.rerun()
+
         team_code_input = st.text_input("Team-Code eingeben", placeholder="z.B. TEAM-ABC123 oder ABC123", key="team_code_minimal")
-        if st.button("🔗 Beitreten", use_container_width=True, disabled=not team_code_input.strip()):
+        if st.button("🎯 Beitreten", use_container_width=True, disabled=not team_code_input.strip()):
             if team_code_input.strip():
                 input_code = team_code_input.strip().upper()
 
@@ -1686,13 +1693,8 @@ with tab6:
                     st.session_state.team_code = team_code
                     st.session_state.private_mode = False
                     st.success(f"✅ Team '{team_name}' beigetreten!")
-                    st.success(f"📋 Code: {team_code}")
+                    st.success(f"� Code: {team_code}")
                     st.rerun()
-
-    with col4:
-        if st.button("🔄 Aktualisieren", use_container_width=True):
-            st.success("🔄 Ansicht aktualisiert!")
-            st.rerun()
 
     # Team-Verwaltung (versteckt für Datenschutz)
     if not teams_df.empty:
