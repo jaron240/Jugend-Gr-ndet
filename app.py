@@ -632,10 +632,30 @@ st.markdown(
 )
 
 # TEAM-FILTERING: Zeige nur Runs des aktiven Teams oder alle Runs wenn kein Team aktiv
-if st.session_state.team_code:
-    runs_df = query_df("SELECT * FROM runs WHERE team_code = ? ORDER BY id DESC", (st.session_state.team_code,))
-else:
-    runs_df = query_df("SELECT * FROM runs WHERE team_code IS NULL OR team_code = '' ORDER BY id DESC")
+# Handle missing team_code column for backward compatibility
+def get_runs_with_team_filter():
+    # Check if team_code column exists
+    try:
+        test_query = query_df("SELECT team_code FROM runs LIMIT 1")
+        column_exists = True
+    except:
+        column_exists = False
+
+    # Add column if it doesn't exist
+    if not column_exists:
+        try:
+            execute("ALTER TABLE runs ADD COLUMN team_code TEXT DEFAULT ''")
+            column_exists = True
+        except:
+            pass
+
+    # Query with team filtering if column exists
+    if column_exists and st.session_state.team_code:
+        return query_df("SELECT * FROM runs WHERE team_code = ? OR team_code IS NULL OR team_code = '' ORDER BY id DESC", (st.session_state.team_code,))
+    else:
+        return query_df("SELECT * FROM runs ORDER BY id DESC")
+
+runs_df = get_runs_with_team_filter()
 
 # KOMPAKTER HEADER MIT TEAM-FUNKTIONALITÄT
 st.title("🎯 Planspiel Tracker JG")
