@@ -287,7 +287,11 @@ if not runs_df.empty:
     # Schnellübersicht
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        active_runs = len(runs_df[runs_df["current_period"] <= 8])
+        # Handle missing current_period column for existing runs
+        if "current_period" in runs_df.columns:
+            active_runs = len(runs_df[runs_df["current_period"] <= 8])
+        else:
+            active_runs = len(runs_df)  # All runs are active if no period tracking
         st.metric("Aktive Runs", active_runs)
 
     with col2:
@@ -296,7 +300,11 @@ if not runs_df.empty:
             st.metric("Bester BSC", f"{best_bsc:.1f}")
 
     with col3:
-        completed_runs = len(runs_df[runs_df["current_period"] > 8])
+        # Handle missing current_period column for existing runs
+        if "current_period" in runs_df.columns:
+            completed_runs = len(runs_df[runs_df["current_period"] > 8])
+        else:
+            completed_runs = 0  # No completed runs if no period tracking
         st.metric("Abgeschlossene Runs", completed_runs)
 
     with col4:
@@ -382,7 +390,11 @@ elif menu == "Periode auswählen":
         )
 
         # Aktuelle Periode des Runs
-        current_period = runs_df.loc[runs_df["id"] == run_id, "current_period"].iloc[0]
+        # Handle missing current_period column for existing runs
+        if "current_period" in runs_df.columns:
+            current_period = runs_df.loc[runs_df["id"] == run_id, "current_period"].iloc[0]
+        else:
+            current_period = 1  # Default for existing runs without period tracking
         st.info(f"Aktuelle Periode des Runs: {current_period}")
 
         # Nächste verfügbare Periode
@@ -432,7 +444,11 @@ elif menu == "Frühwarnsystem":
         )
 
         # Aktuelle Periode und Daten laden
-        current_period = runs_df.loc[runs_df["id"] == run_id, "current_period"].iloc[0]
+        # Handle missing current_period column for existing runs
+        if "current_period" in runs_df.columns:
+            current_period = runs_df.loc[runs_df["id"] == run_id, "current_period"].iloc[0]
+        else:
+            current_period = 1  # Default for existing runs without period tracking
 
         periods_df = query_df(
             "SELECT * FROM periods WHERE run_id = ? ORDER BY period DESC LIMIT 1",
