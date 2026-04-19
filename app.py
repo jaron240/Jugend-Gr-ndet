@@ -173,7 +173,7 @@ def save_period(
 init_db()
 
 st.set_page_config(
-    page_title="Jugend Gruender",
+    page_title="Jugend Gruender - Live Tool",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -182,46 +182,55 @@ st.markdown(
     """
     <style>
     .stApp {
-        background:
-            radial-gradient(circle at top right, rgba(76, 201, 240, 0.12), transparent 26%),
-            radial-gradient(circle at top left, rgba(128, 237, 153, 0.12), transparent 22%),
-            linear-gradient(180deg, #07101a 0%, #0d1724 100%);
-        color: #eef4ff;
+        background: #f8f9fa;
+        color: #212529;
     }
     .block-container {
-        padding-top: 1.2rem;
-        padding-bottom: 2rem;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        max-width: 1200px;
     }
-    div[data-testid="metric-container"] {
-        background: linear-gradient(180deg, rgba(17, 28, 43, 0.95), rgba(23, 40, 60, 0.95));
-        border: 1px solid #29415f;
-        border-radius: 18px;
-        padding: 16px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+    .live-center {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     }
-    div[data-testid="stDataFrame"] {
-        border: 1px solid #29415f;
-        border-radius: 16px;
-        overflow: hidden;
+    .decision-card {
+        background: white;
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
     }
-    section[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #0c1522 0%, #0d1724 100%);
-        border-right: 1px solid #29415f;
+    .conservative { border-left: 5px solid #28a745; }
+    .balanced { border-left: 5px solid #ffc107; }
+    .aggressive { border-left: 5px solid #dc3545; }
+    .warning-box {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
     }
-    .hero {
-        padding: 1.2rem 1.4rem;
-        border: 1px solid #29415f;
-        border-radius: 22px;
-        background: linear-gradient(135deg, rgba(76, 201, 240, 0.12), rgba(128, 237, 153, 0.08));
-        margin-bottom: 1rem;
+    .success-box {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 1rem 0;
     }
-    .hero h1 {
-        margin: 0;
-        font-size: 2.1rem;
+    .metric-large {
+        font-size: 2rem;
+        font-weight: bold;
+        text-align: center;
     }
-    .hero p {
-        margin: 0.35rem 0 0;
-        color: #a6b6cc;
+    .input-large {
+        font-size: 1.2rem;
+        padding: 0.5rem;
     }
     </style>
     """,
@@ -241,6 +250,8 @@ with st.sidebar:
             "Periode auswählen",
             "Periode eintragen",
             "Strategieentscheidungen",
+            "Frühwarnsystem",
+            "Szenario Tester",
             "Analyse",
             "Empfehlungen",
             "Run Vergleich",
@@ -258,15 +269,43 @@ with st.sidebar:
         "Lade deshalb regelmaessig dein Backup herunter."
     )
 
+# LIVE RUN CENTER - Haupteingang für Live-Spiele
 st.markdown(
     """
-    <div class="hero">
-        <h1>Jugend Gruender</h1>
-        <p>Entscheidungshilfe für Jugend Gründet Teams - BSC optimieren, besser entscheiden, Siege holen.</p>
+    <div class="live-center">
+        <h1 style="margin: 0; font-size: 2.5rem;">🎯 LIVE RUN CENTER</h1>
+        <p style="margin: 0.5rem 0; font-size: 1.2rem;">Schnelle Dateneingabe für Jugend Gründet - 30 Sekunden pro Periode</p>
     </div>
     """,
     unsafe_allow_html=True,
 )
+
+# Live Run Center - immer sichtbar oben
+if not runs_df.empty:
+    st.subheader("📊 Aktuelle Runs")
+
+    # Schnellübersicht
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        active_runs = len(runs_df[runs_df["current_period"] <= 8])
+        st.metric("Aktive Runs", active_runs)
+
+    with col2:
+        if not runs_df.empty:
+            best_bsc = runs_df["end_bsc"].max()
+            st.metric("Bester BSC", f"{best_bsc:.1f}")
+
+    with col3:
+        completed_runs = len(runs_df[runs_df["current_period"] > 8])
+        st.metric("Abgeschlossene Runs", completed_runs)
+
+    with col4:
+        avg_bsc = runs_df["end_bsc"].mean() if not runs_df.empty else 0
+        st.metric("Ø BSC", f"{avg_bsc:.1f}")
+
+# Navigation für erweiterte Funktionen
+st.markdown("---")
+st.subheader("🔧 Erweiterte Funktionen")
 
 if menu == "Dashboard":
     c1, c2, c3, c4 = st.columns(4)
@@ -377,6 +416,283 @@ elif menu == "Periode auswählen":
                 execute("UPDATE runs SET current_period = ? WHERE id = ?", (next_available, run_id))
                 st.success(f"Periode {next_available} für {format_run_label(runs_df, run_id)} gestartet!")
                 st.rerun()
+
+elif menu == "Frühwarnsystem":
+    st.subheader("🚨 FRÜHWARNSYSTEM")
+    st.caption("Risiken erkennen und vermeiden - bevor es zu spät ist")
+
+    if runs_df.empty:
+        st.warning("Lege zuerst einen Run an.")
+    else:
+        run_ids = runs_df["id"].tolist()
+        run_id = st.selectbox(
+            "Run wählen",
+            run_ids,
+            format_func=lambda value: format_run_label(runs_df, value),
+        )
+
+        # Aktuelle Periode und Daten laden
+        current_period = runs_df.loc[runs_df["id"] == run_id, "current_period"].iloc[0]
+
+        periods_df = query_df(
+            "SELECT * FROM periods WHERE run_id = ? ORDER BY period DESC LIMIT 1",
+            (run_id,),
+        )
+
+        if periods_df.empty:
+            st.info("Noch keine Periodendaten vorhanden. Trage zuerst eine Periode ein.")
+        else:
+            latest = periods_df.iloc[0]
+
+            st.markdown("### 📊 Aktuelle Situation")
+            col1, col2, col3, col4 = st.columns(4)
+            col1.metric("Periode", current_period)
+            col2.metric("BSC", f"{latest['bsc']:.1f}")
+            col3.metric("Marktanteil", f"{latest['marketshare']:.1f}%")
+            col4.metric("Bekanntheit", f"{latest['awareness']:.1f}")
+
+            # RISIKOANALYSE
+            st.markdown("### ⚠️ KRITISCHE RISIKEN")
+
+            risks = []
+
+            # Überinvestitionsrisiko
+            total_investment = latest['ads'] + latest['process'] + (latest['devs'] + latest['sales']) * 50000
+            if total_investment > latest['profit'] * 2 and latest['profit'] > 0:
+                risk_level = "🔴 HOCH" if total_investment > latest['profit'] * 3 else "🟡 MITTEL"
+                risks.append({
+                    "type": "Überinvestition",
+                    "level": risk_level,
+                    "description": f"Investitionen ({total_investment:,}€) übersteigen Gewinn ({latest['profit']:,.0f}€) deutlich",
+                    "consequence": "Cashflow-Probleme, BSC-Verlust durch Arbeitsplatzabbau",
+                    "recommendation": "Investitionen um 20-30% reduzieren, Fokus auf Effizienz"
+                })
+
+            # Marktverlust-Risiko
+            if latest['marketshare'] < 15 and current_period > 3:
+                risks.append({
+                    "type": "Marktverlust",
+                    "level": "🔴 HOCH",
+                    "description": f"Marktanteil nur {latest['marketshare']:.1f}% - zu niedrig für Periode {current_period}",
+                    "consequence": "Konkurrenz übernimmt Markt, kein Wachstum möglich",
+                    "recommendation": "Preis aggressiver senken, Werbung massiv erhöhen (+50k)"
+                })
+
+            # BSC-Verlust-Risiko
+            bsc_risk_score = 0
+            if latest['innovation'] < 200 and current_period > 4:
+                bsc_risk_score += 2
+            if latest['awareness'] < 150 and current_period > 5:
+                bsc_risk_score += 2
+            if latest['devs'] < 6 and current_period > 6:
+                bsc_risk_score += 1
+
+            if bsc_risk_score >= 3:
+                risks.append({
+                    "type": "BSC-Verlust",
+                    "level": "🔴 KRITISCH",
+                    "description": f"BSC-Komponenten zu niedrig für Endgame (Score: {bsc_risk_score}/5)",
+                    "consequence": "Sieg unmöglich, auch bei hohem Gewinn",
+                    "recommendation": "Sofort Innovation >200, Bekanntheit >150, Mitarbeiter +1"
+                })
+
+            # Planungsfehler-Risiko
+            if current_period > 1:
+                prev_periods = query_df(
+                    "SELECT * FROM periods WHERE run_id = ? ORDER BY period DESC LIMIT 2",
+                    (run_id,),
+                )
+                if len(prev_periods) >= 2:
+                    prev_qty = prev_periods.iloc[1]['qty1']
+                    curr_qty = latest['qty1']
+                    qty_change = abs(curr_qty - prev_qty) / prev_qty if prev_qty > 0 else 0
+
+                    if qty_change > 0.5:  # >50% Änderung
+                        risks.append({
+                            "type": "Planungsfehler",
+                            "level": "🟡 MITTEL",
+                            "description": f"Bestellmenge um {qty_change:.0%} geändert - zu große Sprünge",
+                            "consequence": "Lagerprobleme, Cashflow-Unsicherheit",
+                            "recommendation": "Mengenänderungen auf max. 30% pro Periode begrenzen"
+                        })
+
+            # Anzeige der Risiken
+            if risks:
+                for risk in risks:
+                    st.error(f"""
+                    **{risk['level']} - {risk['type']}**
+
+                    {risk['description']}
+
+                    **Folge:** {risk['consequence']}
+
+                    **Empfehlung:** {risk['recommendation']}
+                    """)
+            else:
+                st.success("✅ Keine kritischen Risiken erkannt - gute Arbeit!")
+
+            # PRÄVENTIVE HINWEISE
+            st.markdown("### 💡 Präventive Hinweise")
+
+            tips = []
+
+            if current_period <= 3 and latest['ads'] < 120000:
+                tips.append("Frühphase: Werbung auf mind. 120k€ erhöhen für Markenaufbau")
+
+            if current_period >= 6 and latest['devs'] < 7:
+                tips.append("Endgame: Mindestens 7 Entwickler für BSC-Maximierung")
+
+            if latest['innovation'] < 250 and current_period >= 7:
+                tips.append("Innovation sollte >250 sein für Top-BSC-Platzierungen")
+
+            if latest['marketshare'] < 25 and current_period >= 5:
+                tips.append("Marktanteil sollte >25% sein für Wettbewerbsfähigkeit")
+
+            for tip in tips:
+                st.info(f"• {tip}")
+
+elif menu == "Szenario Tester":
+    st.subheader("🔮 SZENARIO TESTER")
+    st.caption("Was wäre wenn? - Auswirkungen deiner Entscheidungen simulieren")
+
+    if runs_df.empty:
+        st.warning("Lege zuerst einen Run an.")
+    else:
+        run_ids = runs_df["id"].tolist()
+        run_id = st.selectbox(
+            "Run wählen",
+            run_ids,
+            format_func=lambda value: format_run_label(runs_df, value),
+        )
+
+        periods_df = query_df(
+            "SELECT * FROM periods WHERE run_id = ? ORDER BY period DESC LIMIT 1",
+            (run_id,),
+        )
+
+        if periods_df.empty:
+            st.info("Noch keine Periodendaten vorhanden. Trage zuerst eine Periode ein.")
+        else:
+            baseline = periods_df.iloc[0]
+
+            st.markdown("### 📊 Ausgangssituation")
+            col1, col2, col3, col4 = st.columns(4)
+            col1.metric("Basis-Preis", f"{baseline['price1']:.0f}€")
+            col2.metric("Basis-Werbung", f"{baseline['ads']:,.0f}€")
+            col3.metric("Basis-Entwickler", baseline['devs'])
+            col4.metric("Basis-BSC", f"{baseline['bsc']:.1f}")
+
+            st.markdown("### 🎛️ Was-If Szenarien")
+
+            # Eingabeparameter für Szenario
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                price_change = st.slider("Preisänderung", -50, +50, 0, help="€ Änderung zum Basispreis")
+                ads_change = st.slider("Werbeänderung", -50000, +50000, 0, step=5000, help="€ Änderung zur Basiswerbung")
+            with col2:
+                devs_change = st.slider("Entwickler-Änderung", -2, +2, 0, help="Änderung zur Basisanzahl")
+                sales_change = st.slider("Vertrieb-Änderung", -2, +2, 0, help="Änderung zur Basisanzahl")
+            with col3:
+                qty_change_pct = st.slider("Mengenänderung", -50, +50, 0, help="% Änderung zur Basismenge")
+
+            # Berechnung der Auswirkungen (vereinfachtes Modell)
+            new_price = baseline['price1'] + price_change
+            new_ads = baseline['ads'] + ads_change
+            new_devs = baseline['devs'] + devs_change
+            new_sales = baseline['sales'] + sales_change
+            new_qty = baseline['qty1'] * (1 + qty_change_pct / 100)
+
+            # Vereinfachte Schätzungen (basierend auf typischen Spielmechaniken)
+            # Preisimpact auf Marktanteil
+            price_impact = max(-20, min(20, (559 - new_price) * 0.5))  # 1€ Preisänderung = 0.5% Marktanteil
+
+            # Werbeimpact auf Bekanntheit
+            ads_impact = min(50, new_ads / 2000)  # 2000€ Werbung = 1 Punkt Bekanntheit
+
+            # Personalimpact auf BSC
+            personal_impact = (new_devs - baseline['devs']) * 15 + (new_sales - baseline['sales']) * 10
+
+            # Mengenimpact auf Gewinn (vereinfacht)
+            qty_impact = (new_qty - baseline['qty1']) / baseline['qty1'] * 30  # 10% Mengenänderung = 3% Gewinnänderung
+
+            # Gesamteffekte
+            estimated_marketshare = baseline['marketshare'] + price_impact
+            estimated_awareness = min(1000, baseline['awareness'] + ads_impact)
+            estimated_bsc = max(0, baseline['bsc'] + personal_impact)
+            estimated_profit = baseline['profit'] * (1 + qty_impact / 100)
+
+            st.markdown("### 🔍 Szenario-Ergebnisse")
+
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                delta_ms = estimated_marketshare - baseline['marketshare']
+                col1.metric(
+                    "Marktanteil",
+                    f"{estimated_marketshare:.1f}%",
+                    f"{delta_ms:+.1f}%" if abs(delta_ms) > 0.1 else None,
+                    delta_color="normal"
+                )
+            with col2:
+                delta_awa = estimated_awareness - baseline['awareness']
+                col2.metric(
+                    "Bekanntheit",
+                    f"{estimated_awareness:.1f}",
+                    f"{delta_awa:+.1f}" if abs(delta_awa) > 0.1 else None,
+                    delta_color="normal"
+                )
+            with col3:
+                delta_bsc = estimated_bsc - baseline['bsc']
+                col3.metric(
+                    "BSC",
+                    f"{estimated_bsc:.1f}",
+                    f"{delta_bsc:+.1f}" if abs(delta_bsc) > 0.1 else None,
+                    delta_color="normal"
+                )
+            with col4:
+                delta_profit = estimated_profit - baseline['profit']
+                col4.metric(
+                    "Gewinn",
+                    f"{estimated_profit:,.0f}€",
+                    f"{delta_profit:+,.0f}€" if abs(delta_profit) > 1000 else None,
+                    delta_color="normal"
+                )
+
+            # Interpretation
+            st.markdown("### 💭 Interpretation")
+
+            insights = []
+
+            if abs(price_change) > 20:
+                if price_change < 0:
+                    insights.append("⚠️ Starke Preissenkung: Guter Marktanteil, aber Margen unter Druck")
+                else:
+                    insights.append("⚠️ Preiserhöhung: Höhere Margen, aber Marktanteil schrumpft")
+
+            if ads_change > 20000:
+                insights.append("📈 Hohe Werbeinvestition: Starke Bekanntheitssteigerung, aber Cashflow beachten")
+
+            if devs_change > 0:
+                insights.append("🏆 Mehr Entwickler: BSC-Boost durch Innovation, aber Personalkosten steigen")
+
+            if abs(qty_change_pct) > 30:
+                if qty_change_pct > 0:
+                    insights.append("📦 Mengensteigerung: Höherer Gewinn möglich, aber Lager- und Cashflow-Risiko")
+                else:
+                    insights.append("📦 Mengenreduktion: Sicherer Cashflow, aber Wachstum gebremst")
+
+            if estimated_bsc > baseline['bsc'] + 50:
+                insights.append("🎯 BSC-Sprung! Diese Änderungen würden BSC stark verbessern")
+
+            if estimated_marketshare < 15:
+                insights.append("🚨 Marktanteil kritisch niedrig - aggressive Preisstrategie nötig")
+
+            if not insights:
+                insights.append("🔄 Moderate Änderungen - ausgewogene Entwicklung")
+
+            for insight in insights:
+                st.write(insight)
+
+            st.info("**Hinweis:** Dies sind Schätzungen basierend auf typischen Spielmechaniken. Die tatsächlichen Auswirkungen können variieren.")
 
 elif menu == "Strategieentscheidungen":
     st.subheader("Strategische Entscheidungen")
@@ -852,89 +1168,203 @@ elif menu == "Analyse":
             st.dataframe(periods_df, use_container_width=True, hide_index=True)
 
 elif menu == "Empfehlungen":
-    st.subheader("Schnelle Entscheidungshilfen")
-    st.caption("Praktische Empfehlungen basierend auf Spielphase und Marktlage")
+    st.subheader("🎯 ENTSCHEIDUNGSHILFE")
+    st.caption("Drei strategische Optionen mit Begründung - keine Fake-Präzision")
 
-    col1, col2 = st.columns(2)
-    market_growth = col1.slider("Marktwachstum %", -15, 20, 5)
-    current_period = col2.selectbox("Aktuelle Periode", list(range(1, 9)), index=0)
+    # Eingabeparameter
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        current_period = st.selectbox("Aktuelle Periode", list(range(1, 9)), index=0)
+        market_growth = st.slider("Marktwachstum %", -15, 20, 5)
+    with col2:
+        competitor_price = st.number_input("Konkurrenz Preis", 450, 700, 559)
+        current_marketshare = st.slider("Dein Marktanteil %", 5, 50, 20)
+    with col3:
+        current_awareness = st.slider("Deine Bekanntheit", 50, 200, 110)
+        current_innovation = st.slider("Deine Innovation", 100, 400, 230)
 
     # Phase bestimmen
     if current_period <= 2:
         phase = "Frühphase"
-        phase_desc = "Fokus: Vertrauen aufbauen, effizient arbeiten"
-        base_price = 569
-        ads_rec = "90k-130k"
-        devs_rec = 5
-        sales_rec = "4-5"
-        qty_factor = 1.0
+        phase_focus = "Vertrauen aufbauen, effizient arbeiten"
     elif current_period <= 5:
         phase = "Mittelphase"
-        phase_desc = "Fokus: Marktanteil gewinnen, Innovation steigern"
-        base_price = 559
-        ads_rec = "140k-180k"
-        devs_rec = 6
-        sales_rec = 6
-        qty_factor = 1.1
+        phase_focus = "Marktanteil gewinnen, Innovation steigern"
     else:
         phase = "Endgame"
-        phase_desc = "Fokus: BSC maximieren, saubere Performance"
-        base_price = 579
-        ads_rec = "180k-230k"
-        devs_rec = 7
-        sales_rec = 7
-        qty_factor = 1.2
+        phase_focus = "BSC maximieren, Arbeitsplätze schaffen"
 
-    # Marktadjustierung
-    if market_growth > 8:
-        base_price += 10
-        ads_rec = "erhöhen (+25k)"
-        sales_rec = str(int(sales_rec) + 1) if isinstance(sales_rec, int) else f"{sales_rec.split('-')[0]}-{int(sales_rec.split('-')[1]) + 1}"
-        qty_factor *= 1.08
-    elif market_growth < 0:
-        base_price -= 15
-        qty_factor *= 0.92
+    st.markdown(f"### 📊 {phase} (Periode {current_period})")
+    st.info(f"**Fokus:** {phase_focus}")
 
-    base_qty = int(4000 * qty_factor)
+    # DREI OPTIONEN mit Begründung
+    st.markdown("### Drei strategische Optionen:")
 
-    st.markdown(f"### {phase} (Periode {current_period})")
-    st.info(phase_desc)
+    # Konservative Option
+    st.markdown(
+        """
+        <div class="decision-card conservative">
+        <h4>🟢 KONSERVATIV - Sicher spielen</h4>
+        """,
+        unsafe_allow_html=True
+    )
 
-    c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("Preis", f"{base_price} EUR")
-    c2.metric("Werbung", ads_rec)
-    c3.metric("Entwickler", devs_rec)
-    c4.metric("Vertrieb", sales_rec)
-    c5.metric("Bestellmenge", f"{base_qty:,}")
-
-    st.markdown("**Wichtige Tipps:**")
-    tips = []
     if current_period <= 2:
-        tips = [
-            "Vertrauen durch saubere Prozesse aufbauen",
-            "Nicht zu aggressiv starten",
-            "Gewinn machen, aber BSC nicht vernachlässigen"
-        ]
+        cons_price = 569
+        cons_ads = 100000
+        cons_devs = 5
+        cons_qty = 3800
+        cons_reason = f"Preis {cons_price}€ liegt im sicheren Bereich. Werbung {cons_ads:,}€ für Grundpräsenz. Nicht zu aggressiv starten."
     elif current_period <= 5:
-        tips = [
-            "Marktanteil aktiv ausbauen",
-            "Innovation über 200 halten",
-            "Bekanntheit systematisch steigern"
-        ]
+        cons_price = 559
+        cons_ads = 150000
+        cons_devs = 6
+        cons_qty = 4200
+        cons_reason = f"Preis {cons_price}€ für stabile Margen. Werbung {cons_ads:,}€ für Marktanteil. Solide Mittelphase."
     else:
-        tips = [
-            "BSC ist wichtiger als reiner Gewinn",
-            "Arbeitsplätze schaffen zählt",
-            "Keine Fehler in den letzten Perioden"
-        ]
+        cons_price = 579
+        cons_ads = 200000
+        cons_devs = 7
+        cons_qty = 4800
+        cons_reason = f"Preis {cons_price}€ für BSC-Fokus. Werbung {cons_ads:,}€ für finale Präsenz. Keine Risiken."
 
+    # Marktadjustierung für konservative Option
     if market_growth > 8:
-        tips.append("Boommarkt: Mehr investieren!")
+        cons_price += 5
+        cons_ads += 10000
+        cons_reason += " Boommarkt: Leicht höher investieren."
     elif market_growth < 0:
-        tips.append("Schwacher Markt: Konservativ bleiben")
+        cons_price -= 10
+        cons_qty *= 0.95
+        cons_reason += " Schwacher Markt: Preise anpassen, Mengen reduzieren."
 
-    for tip in tips:
-        st.write(f"• {tip}")
+    st.markdown(f"""
+    **Preis:** {cons_price}€
+    **Werbung:** {cons_ads:,}€
+    **Entwickler:** {cons_devs}
+    **Bestellmenge:** {cons_qty:,}
+
+    **Begründung:** {cons_reason}
+    """)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # Ausgewogene Option
+    st.markdown(
+        """
+        <div class="decision-card balanced">
+        <h4>🟡 AUSGEWOGEN - Balancierte Strategie</h4>
+        """,
+        unsafe_allow_html=True
+    )
+
+    if current_period <= 2:
+        bal_price = 559
+        bal_ads = 120000
+        bal_devs = 5
+        bal_qty = 4000
+        bal_reason = f"Preis {bal_price}€ für gute Margen bei Marktakzeptanz. Werbung {bal_ads:,}€ für Wachstum. Ausgewogen starten."
+    elif current_period <= 5:
+        bal_price = 549
+        bal_ads = 170000
+        bal_devs = 6
+        bal_qty = 4500
+        bal_reason = f"Preis {bal_price}€ für Marktanteil. Werbung {bal_ads:,}€ für Bekanntheit. Aktiv wachsen."
+    else:
+        bal_price = 569
+        bal_ads = 220000
+        bal_devs = 7
+        bal_qty = 5200
+        bal_reason = f"Preis {bal_price}€ für Gewinn-BSC-Balance. Werbung {bal_ads:,}€ für maximale Präsenz. BSC-Push."
+
+    # Marktadjustierung für ausgewogene Option
+    if market_growth > 8:
+        bal_price += 8
+        bal_ads += 20000
+        bal_qty *= 1.05
+        bal_reason += " Boommarkt: Mehr Kapital nutzen."
+    elif market_growth < 0:
+        bal_price -= 5
+        bal_qty *= 0.9
+        bal_reason += " Schwacher Markt: Risiken minimieren."
+
+    st.markdown(f"""
+    **Preis:** {bal_price}€
+    **Werbung:** {bal_ads:,}€
+    **Entwickler:** {bal_devs}
+    **Bestellmenge:** {bal_qty:,}
+
+    **Begründung:** {bal_reason}
+    """)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # Aggressive Option
+    st.markdown(
+        """
+        <div class="decision-card aggressive">
+        <h4>🔴 AGGRESSIV - Volles Risiko</h4>
+        """,
+        unsafe_allow_html=True
+    )
+
+    if current_period <= 2:
+        agg_price = 549
+        agg_ads = 140000
+        agg_devs = 6
+        agg_qty = 4200
+        agg_reason = f"Preis {agg_price}€ für schnellen Marktanteil. Werbung {agg_ads:,}€ für Dominanz. Risiko für frühen Vorsprung."
+    elif current_period <= 5:
+        agg_price = 539
+        agg_ads = 190000
+        agg_devs = 7
+        agg_qty = 4800
+        agg_reason = f"Preis {agg_price}€ für Marktführerschaft. Werbung {agg_ads:,}€ für Überlegenheit. Volles Risiko für maximalen Erfolg."
+    else:
+        agg_price = 559
+        agg_ads = 240000
+        agg_devs = 8
+        agg_qty = 5600
+        agg_reason = f"Preis {agg_price}€ für finale Marktanteile. Werbung {agg_ads:,}€ für Sieg. Alles oder nichts."
+
+    # Marktadjustierung für aggressive Option
+    if market_growth > 8:
+        agg_price += 12
+        agg_ads += 30000
+        agg_qty *= 1.1
+        agg_reason += " Boommarkt: Maximum investieren!"
+    elif market_growth < 0:
+        agg_reason += " ⚠️ Schwacher Markt: Hohes Risiko - nicht empfohlen!"
+
+    st.markdown(f"""
+    **Preis:** {agg_price}€
+    **Werbung:** {agg_ads:,}€
+    **Entwickler:** {agg_devs}
+    **Bestellmenge:** {agg_qty:,}
+
+    **Begründung:** {agg_reason}
+    """)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # Wichtige Hinweise
+    st.markdown("### ⚠️ Wichtige Hinweise:")
+    warnings = []
+
+    if competitor_price < cons_price - 20:
+        warnings.append("Konkurrenz ist deutlich günstiger - Preisrisiko!")
+    if current_marketshare < 15:
+        warnings.append("Marktanteil zu niedrig - aggressiver werden!")
+    if current_awareness < 120 and current_period > 3:
+        warnings.append("Bekanntheit zu niedrig für diese Phase!")
+    if current_innovation < 200 and current_period > 4:
+        warnings.append("Innovation zu niedrig - BSC-Gefahr!")
+
+    if warnings:
+        for warning in warnings:
+            st.warning(f"• {warning}")
+    else:
+        st.success("Parameter sehen grundsätzlich gut aus!")
+
+    # BSC-Erinnerung
+    st.info("**BSC-Erinnerung:** Nicht nur Gewinn zählt! Innovation, Arbeitsplätze, Nachhaltigkeit sind entscheidend für den Sieg.")
 
 elif menu == "Run Vergleich":
     st.subheader("Run Vergleich")
