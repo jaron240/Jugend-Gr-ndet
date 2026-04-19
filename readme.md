@@ -1,14 +1,17 @@
-# Jugend Gruender
+# Planspiel Tracker JG
 
-Dunkles Live-Tool für Jugend Gründet Teams - BSC optimieren, besser entscheiden, Siege holen.
+Professionelles Dark Mode Tool für Jugend Gründet Teams - BSC optimieren, Live-Entscheidungen treffen, Siegchancen maximieren.
 
 ## Was ist das?
 
-Ein einfaches, schnelles Tool für Jugend Gründet Teams mit dunklem Design:
-- **🏠 Live Center** - Übersicht über alle Runs
-- **⚡ Quick Input** - 30-Sekunden Dateneingabe pro Periode
-- **🎯 Entscheidungen** - Drei strategische Optionen (Sicher/Balanciert/Aggressiv)
-- **📊 Analyse** - Charts und Vergleiche
+Ein umfassendes, visuell beeindruckendes Tool für Jugend Gründet Teams:
+- **🏠 Dashboard** - Live-Übersicht mit interaktiven Charts & Korrelationsanalysen
+- **⚡ Quick Input** - 30-Sekunden Dateneingabe pro Periode (periodenbewusst)
+- **🎯 Entscheidungen** - Detaillierte strategische Empfehlungen mit Begründungen
+- **📊 Analyse** - Erweiterte Visualisierungen (Radar, ROI, Wachstumsraten, Korrelationen)
+- **🚨 Frühwarnsystem** - Risikoanalyse & präventive Hinweise
+- **⚙️ Einstellungen** - Daten-Export/Import für Cross-Device-Sync
+- **🗑️ Run Management** - Runs löschen & Datenbank verwalten
 
 ## Wichtige Erkenntnisse
 
@@ -17,6 +20,7 @@ Ein einfaches, schnelles Tool für Jugend Gründet Teams mit dunklem Design:
 - **Werbung wirkt langfristig** - früh investieren zahlt sich aus
 - **Markt 2 ab Periode 5** - frühere Perioden haben nur Markt 1
 - **Periodenbewusst** - Tool passt sich automatisch an die Spielphase an
+- **Datenpersistenz** - Daten bleiben auch nach Computer-Neustart erhalten
 
 ## Dateien
 
