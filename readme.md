@@ -35,6 +35,19 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
+## 📱 Mobile & Tablet kompatibel
+
+Das Tool läuft vollständig auf:
+- **Smartphones** (iOS & Android)
+- **Tablets** (iPad & Android-Tablets)
+- **Desktop-Computer**
+
+**Responsive Design:**
+- Touch-freundliche Buttons (44px Mindestgröße)
+- Automatische Layout-Anpassung
+- Optimierte Schriftgrößen
+- Kein ungewolltes Zoomen auf iOS
+
 ## Auf GitHub hochladen
 
 1. Erstelle einen neuen Ordner in VS Code und füge `app.py`, `requirements.txt`, `.gitignore` und diese `README.md` hinzu
