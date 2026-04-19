@@ -446,17 +446,152 @@ st.markdown(
         animation: fadeIn 0.6s ease-out;
     }
 
-    /* RESPONSIVE DESIGN */
-    @media (max-width: 768px) {
+    /* RESPONSIVE DESIGN - MOBILE & TABLET OPTIMIERUNG */
+    @media (max-width: 1024px) {
+        /* Tablet */
         .main-header h1 {
-            font-size: 2rem;
+            font-size: 2.2rem;
         }
         .metric-value {
-            font-size: 2rem;
+            font-size: 2.2rem;
         }
         .stTabs [data-baseweb="tab"] {
-            padding: 0.75rem 1rem;
-            font-size: 0.85rem;
+            padding: 0.8rem 1.2rem;
+            font-size: 0.9rem;
+        }
+        .dashboard-card, .metric-card, .input-section, .decision-card, .settings-panel {
+            padding: 1.5rem;
+            margin: 1rem 0.5rem;
+        }
+    }
+
+    @media (max-width: 768px) {
+        /* Mobile */
+        .main-header h1 {
+            font-size: 1.8rem;
+        }
+        .main-header p {
+            font-size: 1rem;
+        }
+        .metric-value {
+            font-size: 1.8rem;
+        }
+        .metric-label {
+            font-size: 0.8rem;
+        }
+
+        /* Tabs für Mobile optimieren */
+        .stTabs [data-baseweb="tab-list"] {
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            padding: 0.5rem;
+        }
+        .stTabs [data-baseweb="tab"] {
+            padding: 0.6rem 0.8rem;
+            font-size: 0.8rem;
+            min-width: auto;
+            flex: 1;
+            text-align: center;
+        }
+
+        /* Karten für Mobile */
+        .dashboard-card, .metric-card, .input-section, .decision-card, .settings-panel {
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 12px;
+        }
+
+        /* Buttons für Touch */
+        .stButton button {
+            padding: 0.8rem 1.2rem;
+            font-size: 1rem;
+            min-height: 44px; /* Apple Touch Target Size */
+            width: 100%;
+            margin: 0.25rem 0;
+        }
+
+        /* Form Elemente für Mobile */
+        .stSelectbox, .stNumberInput, .stSlider, .stTextInput {
+            margin: 0.5rem 0;
+        }
+        .stSelectbox div[data-baseweb="select"], .stNumberInput input, .stTextInput input {
+            font-size: 16px; /* Verhindert Zoom auf iOS */
+            padding: 0.75rem;
+            min-height: 44px;
+        }
+
+        /* Spalten für Mobile stacken */
+        .stColumns {
+            flex-direction: column;
+        }
+        .stColumns > div {
+            margin: 0.5rem 0;
+        }
+
+        /* Charts für Mobile */
+        .js-plotly-plot {
+            height: 300px !important;
+        }
+
+        /* DataFrames für Mobile */
+        .stDataFrame {
+            font-size: 0.8rem;
+            overflow-x: auto;
+        }
+    }
+
+    @media (max-width: 480px) {
+        /* Kleine Mobile */
+        .main-header h1 {
+            font-size: 1.5rem;
+        }
+        .main-header p {
+            font-size: 0.9rem;
+        }
+        .metric-value {
+            font-size: 1.5rem;
+        }
+
+        .stTabs [data-baseweb="tab"] {
+            padding: 0.5rem 0.6rem;
+            font-size: 0.75rem;
+        }
+
+        .dashboard-card, .metric-card, .input-section, .decision-card, .settings-panel {
+            padding: 0.8rem;
+        }
+
+        .stButton button {
+            padding: 0.7rem 1rem;
+            font-size: 0.95rem;
+        }
+    }
+
+    /* TOUCH-FRIENDLY INTERACTIONS */
+    @media (hover: none) and (pointer: coarse) {
+        /* Touch-Geräte */
+        .stButton button {
+            transform: none !important; /* Keine Hover-Effekte auf Touch */
+        }
+
+        .dashboard-card:hover, .metric-card:hover, .decision-card:hover {
+            transform: none !important; /* Keine Hover-Effekte auf Touch */
+        }
+    }
+
+    /* SAFARI & iOS SPEZIFISCH */
+    @supports (-webkit-touch-callout: none) {
+        /* iOS Safari */
+        .stSelectbox div[data-baseweb="select"], .stNumberInput input, .stTextInput input {
+            font-size: 16px !important; /* Verhindert Zoom */
+            -webkit-appearance: none;
+            border-radius: 8px;
+        }
+
+        /* iOS Button Styling */
+        .stButton button {
+            -webkit-appearance: none;
+            border-radius: 12px;
         }
     }
 
