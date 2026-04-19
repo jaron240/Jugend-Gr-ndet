@@ -1627,7 +1627,7 @@ with tab6:
         st.success(f"👥 **Team:** {team_name}")
 
     # Team-Funktionen
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3, col4 = st.columns(4)
 
     with col1:
         if st.button("🔒 Privat", use_container_width=True):
@@ -1666,6 +1666,11 @@ with tab6:
                     st.session_state.private_mode = False
                     st.success(f"✅ Team beigetreten!")
                     st.rerun()
+
+    with col4:
+        if st.button("🔄 Aktualisieren", use_container_width=True):
+            st.success("🔄 Ansicht aktualisiert!")
+            st.rerun()
 
     # Team-Liste mit Löschfunktion
     if not teams_df.empty:
