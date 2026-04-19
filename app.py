@@ -189,19 +189,31 @@ if 'team_code' not in st.session_state:
 if 'private_mode' not in st.session_state:
     st.session_state.private_mode = True  # Start im Privatmodus
 
-# PERSISTENTE GERÄTE-BASIERTE TRENNUNG mit Cache
-@st.cache_data
-def get_persistent_device_id():
-    """Generiert eine persistente Device-ID die über Sessions hinweg erhalten bleibt"""
+# PERSISTENTE GERÄTE-BASIERTE TRENNUNG mit Session-Kontext
+def get_session_based_device_id():
+    """Generiert eine Device-ID basierend auf Session-Kontext für bessere Trennung"""
+    try:
+        from streamlit.runtime.scriptrunner import get_script_run_ctx
+        ctx = get_script_run_ctx()
+        if ctx:
+            # Verwende Session-ID und andere Kontext-Informationen
+            session_seed = f"{ctx.session_id}_{ctx.client_ip if hasattr(ctx, 'client_ip') else 'unknown'}_{secrets.token_hex(8)}"
+            import hashlib
+            device_id = hashlib.md5(session_seed.encode()).hexdigest()[:8].upper()
+            return f"PRIVATE-{device_id}"
+    except:
+        pass
+
+    # Fallback für den Fall, dass Kontext nicht verfügbar
     import hashlib
     import time
-    # Verwende eine Kombination aus Zeit und Zufall für Eindeutigkeit
-    device_seed = f"planspiel_tracker_{time.time()}_{secrets.token_hex(16)}"
-    device_id = hashlib.sha256(device_seed.encode()).hexdigest()[:12].upper()
+    device_seed = f"fallback_{time.time()}_{secrets.token_hex(8)}"
+    device_id = hashlib.md5(device_seed.encode()).hexdigest()[:8].upper()
     return f"PRIVATE-{device_id}"
 
-# Hole persistente Device-ID
-st.session_state.device_id = get_persistent_device_id()
+# Hole session-basierte Device-ID
+if 'device_id' not in st.session_state:
+    st.session_state.device_id = get_session_based_device_id()
 
 # Im Privatmodus immer die Device-ID als Team-Code verwenden für echte Trennung
 if st.session_state.private_mode:
