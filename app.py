@@ -64,6 +64,14 @@ def init_db() -> None:
                 FOREIGN KEY(run_id) REFERENCES runs(id) ON DELETE CASCADE,
                 UNIQUE(run_id, period, decision_type)
             );
+
+            CREATE TABLE IF NOT EXISTS teams(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                team_code TEXT UNIQUE NOT NULL,
+                team_name TEXT NOT NULL,
+                created_by_device TEXT,
+                created TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
             """
         )
 
@@ -1643,6 +1651,118 @@ with tab6:
 
         except Exception as e:
             st.error(f"❌ Fehler beim Import: {str(e)}")
+
+    st.markdown("---")
+    st.subheader("👥 Team-Management")
+
+    # Aktuelle Teams laden
+    teams_df = query_df("SELECT * FROM teams ORDER BY created DESC")
+
+    # Team-Status und Modus-Wechsel
+    st.markdown("**Aktueller Modus:**")
+    if st.session_state.private_mode:
+        st.info("🔒 **Privater Modus** - nur deine privaten Daten")
+    elif st.session_state.team_code:
+        team_name = "Unbekanntes Team"
+        if not teams_df.empty:
+            team_match = teams_df[teams_df['team_code'] == st.session_state.team_code]
+            if not team_match.empty:
+                team_name = team_match.iloc[0]['team_name']
+        st.success(f"👥 **Team-Modus:** {team_name} ({st.session_state.team_code})")
+    else:
+        st.info("🔒 **Privater Modus** - nur deine privaten Daten")
+
+    # Modus-Wechsel Optionen
+    st.markdown("**Modus wechseln:**")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("🔒 Privatmodus aktivieren", type="secondary", use_container_width=True):
+            st.session_state.team_code = None
+            st.session_state.private_mode = True
+            st.success("🔒 Privatmodus aktiviert!")
+            st.rerun()
+
+    with col2:
+        if st.button("🎯 Team wechseln", type="secondary", use_container_width=True):
+            # Zeige verfügbare Teams
+            if teams_df.empty:
+                st.info("Keine Teams vorhanden. Erstelle zuerst ein Team.")
+            else:
+                team_options = ["🔙 Zurück zum Privatmodus"] + [f"{row['team_name']} ({row['team_code']})" for _, row in teams_df.iterrows()]
+
+                selected_team = st.selectbox(
+                    "Team wählen:",
+                    team_options,
+                    key="team_switcher"
+                )
+
+                if selected_team and selected_team != "🔙 Zurück zum Privatmodus":
+                    # Extrahiere Team-Code aus der Auswahl
+                    team_code = selected_team.split('(')[-1].rstrip(')')
+                    st.session_state.team_code = team_code
+                    st.session_state.private_mode = False
+                    st.success(f"✅ Team gewechselt zu: {selected_team}")
+                    st.rerun()
+                elif selected_team == "🔙 Zurück zum Privatmodus":
+                    st.session_state.team_code = None
+                    st.session_state.private_mode = True
+                    st.success("🔙 Zurück zum Privatmodus!")
+                    st.rerun()
+
+    # Neues Team erstellen
+    st.markdown("---")
+    st.subheader("➕ Neues Team erstellen")
+
+    with st.expander("Neues Team erstellen"):
+        team_name_input = st.text_input("Team-Name", placeholder="z.B. Jugend Gründet Team Alpha")
+        team_code_input = st.text_input("Team-Code (optional)", placeholder="z.B. JG-TEAM-ALPHA")
+
+        if st.button("🎯 Team erstellen", type="primary", disabled=not team_name_input.strip()):
+            if team_name_input.strip():
+                # Generiere Team-Code wenn nicht angegeben
+                final_team_code = team_code_input.strip().upper() if team_code_input.strip() else f"TEAM-{secrets.token_hex(3).upper()}"
+
+                # Prüfe ob Team-Code bereits existiert
+                existing_team = query_df("SELECT id FROM teams WHERE team_code = ?", (final_team_code,))
+                if not existing_team.empty:
+                    st.error(f"❌ Team-Code '{final_team_code}' existiert bereits!")
+                else:
+                    # Team in Datenbank speichern
+                    execute(
+                        "INSERT INTO teams(team_code, team_name, created_by_device) VALUES(?, ?, ?)",
+                        (final_team_code, team_name_input.strip(), st.session_state.device_id)
+                    )
+
+                    # Team beitreten
+                    st.session_state.team_code = final_team_code
+                    st.session_state.private_mode = False
+
+                    st.success(f"✅ Team '{team_name_input.strip()}' erstellt!")
+                    st.success(f"📋 Team-Code: {final_team_code}")
+                    st.info("Teile diesen Code mit deinen Teammitgliedern!")
+                    st.rerun()
+
+    # Team-Übersicht
+    if not teams_df.empty:
+        st.markdown("---")
+        st.subheader("📋 Deine Teams")
+
+        # Zeige Teams in einer schönen Übersicht
+        for _, team in teams_df.iterrows():
+            is_current_team = (st.session_state.team_code == team['team_code'] and not st.session_state.private_mode)
+
+            if is_current_team:
+                st.success(f"🎯 **{team['team_name']}** ({team['team_code']}) - **AKTIV**")
+            else:
+                st.info(f"👥 {team['team_name']} ({team['team_code']})")
+
+                # Schnell-Button zum Beitreten
+                if st.button(f"🔗 Beitreten", key=f"join_{team['team_code']}", help=f"Team {team['team_name']} beitreten"):
+                    st.session_state.team_code = team['team_code']
+                    st.session_state.private_mode = False
+                    st.success(f"✅ Team '{team['team_name']}' beigetreten!")
+                    st.rerun()
 
     st.markdown("---")
     st.subheader("🗂️ Datenbank-Info")
