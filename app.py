@@ -689,12 +689,8 @@ def get_runs_with_team_filter():
 
     # Query based on column availability
     if column_exists:
-        if st.session_state.team_code and not st.session_state.private_mode:
-            # Team mode: show ONLY runs with this specific team code
-            return query_df("SELECT * FROM runs WHERE team_code = ? ORDER BY id DESC", (st.session_state.team_code,))
-        else:
-            # Private mode: show ONLY runs without team code (private runs)
-            return query_df("SELECT * FROM runs WHERE team_code IS NULL OR team_code = '' ORDER BY id DESC")
+        # Always show runs with the current team_code (which is device_id in private mode)
+        return query_df("SELECT * FROM runs WHERE team_code = ? ORDER BY id DESC", (st.session_state.team_code,))
     else:
         # Fallback: no team filtering available, show all runs
         return query_df("SELECT * FROM runs ORDER BY id DESC")
