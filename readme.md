@@ -1,48 +1,63 @@
-Jugend Gruender Ultra
+# Jugend Gruender
 
-Deploy-ready Streamlit dashboard for tracking runs, entering periods, comparing outcomes and generating quick strategy recommendations.
+Entscheidungshilfe für Jugend Gründet Teams - BSC optimieren, besser entscheiden, Siege holen.
 
-## Files
+## Was ist das?
 
-- `app.py` - main Streamlit app
-- `requirements.txt` - Python dependencies for Streamlit Cloud
-- `.gitignore` - ignores virtual environments, cache files and the local SQLite database
+Ein einfaches, praktisches Tool für Jugend Gründet Teams, das hilft:
+- Runs und Perioden zu tracken
+- BSC und Gewinn zu analysieren
+- Schnelle Entscheidungshilfen zu bekommen
+- Aus vergangenen Runs zu lernen
 
-## Run locally
+## Wichtige Erkenntnisse
+
+- **BSC zählt mehr als Gewinn allein** - Innovation, Nachhaltigkeit und Arbeitsplätze sind entscheidend
+- **Nicht zu konservativ sein** - zu wenig Mitarbeiter/Innovation kann trotz gutem Gewinn zum Verlust führen
+- **Werbung wirkt langfristig** - früh investieren lohnt sich
+- **Prozessbudget ist wichtig** - effiziente Abläufe zahlen sich aus
+
+## Dateien
+
+- `app.py` - Haupt-Streamlit-App
+- `requirements.txt` - Python-Abhängigkeiten für Streamlit Cloud
+- `.gitignore` - ignoriert virtuelle Umgebungen, Cache-Dateien und lokale SQLite-Datenbank
+
+## Lokal ausführen
 
 ```bash
 pip install -r requirements.txt
 streamlit run app.py
 ```
 
-## Upload to GitHub
+## Auf GitHub hochladen
 
-1. Create a new folder in VS Code and paste in `app.py`, `requirements.txt`, `.gitignore`, and this `README.md`.
-2. Create a new GitHub repository.
-3. Commit and push the files.
+1. Erstelle einen neuen Ordner in VS Code und füge `app.py`, `requirements.txt`, `.gitignore` und diese `README.md` hinzu
+2. Erstelle ein neues GitHub-Repository
+3. Commite und pushe die Dateien
 
-Example commands:
+Beispiel-Befehle:
 
 ```bash
 git init
 git add .
-git commit -m "Initial Streamlit app"
+git commit -m "Initial Jugend Gruender App"
 git branch -M main
 git remote add origin https://github.com/YOUR-USERNAME/YOUR-REPO.git
 git push -u origin main
 ```
 
-## Connect it with Streamlit Community Cloud
+## Mit Streamlit Community Cloud verbinden
 
-1. Open [https://share.streamlit.io/](https://share.streamlit.io/)
-2. Sign in with GitHub
-3. Click **New app**
-4. Pick your repository and branch
-5. Set the main file path to `app.py`
-6. Click **Deploy**
+1. Öffne [https://share.streamlit.io/](https://share.streamlit.io/)
+2. Melde dich mit GitHub an
+3. Klicke **New app**
+4. Wähle dein Repository und Branch
+5. Setze den Haupt-Dateipfad auf `app.py`
+6. Klicke **Deploy**
 
-## Important note about data
+## Wichtiger Hinweis zu Daten
 
-This app stores data in a local SQLite file called `jugend_gruendet.db`.
+Die App speichert Daten in einer lokalen SQLite-Datei namens `jugend_gruendet.db`.
 
-That works well on your own machine, but on Streamlit Community Cloud local files are not durable long-term. The app therefore includes a **Backup als JSON herunterladen** button in the sidebar so you can regularly export your data.
+Das funktioniert gut auf deinem eigenen Rechner, aber auf Streamlit Community Cloud sind lokale Dateien nicht dauerhaft. Die App enthält daher einen **Backup als JSON herunterladen** Button in der Sidebar, damit du regelmäßig deine Daten exportieren kannst.

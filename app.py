@@ -161,7 +161,7 @@ def save_period(
 init_db()
 
 st.set_page_config(
-    page_title="Jugend Gruender Ultra",
+    page_title="Jugend Gruender",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -219,19 +219,17 @@ st.markdown(
 runs_df = query_df("SELECT * FROM runs ORDER BY id DESC")
 
 with st.sidebar:
-    st.title("Jugend Gruender Ultra")
-    st.caption("Paste-ready, GitHub-ready, Streamlit-ready.")
+    st.title("Jugend Gruender")
+    st.caption("Entscheidungshilfe für Jugend Gründet Teams")
     menu = st.radio(
         "Navigation",
         [
             "Dashboard",
             "Neuer Run",
-            "Periode erfassen",
-            "Run Analyse",
-            "KI Optimierer",
-            "Autopilot",
-            "Konkurrenz Radar",
-            "Strategie Guide",
+            "Periode eintragen",
+            "Analyse",
+            "Empfehlungen",
+            "Run Vergleich",
         ],
     )
     st.download_button(
@@ -249,8 +247,8 @@ with st.sidebar:
 st.markdown(
     """
     <div class="hero">
-        <h1>Jugend Gruender ULTRA Command Center</h1>
-        <p>Dark dashboard for runs, period tracking, analysis, optimization and quick deployment.</p>
+        <h1>Jugend Gruender</h1>
+        <p>Entscheidungshilfe für Jugend Gründet Teams - BSC optimieren, besser entscheiden, Siege holen.</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -345,7 +343,7 @@ elif menu == "Neuer Run":
             hide_index=True,
         )
 
-elif menu == "Periode erfassen":
+elif menu == "Periode eintragen":
     st.subheader("Periode speichern oder aktualisieren")
     if runs_df.empty:
         st.warning("Lege zuerst einen Run an.")
@@ -489,7 +487,7 @@ elif menu == "Periode erfassen":
             )
             st.rerun()
 
-elif menu == "Run Analyse":
+elif menu == "Analyse":
     st.subheader("Run Analyse")
     if runs_df.empty:
         st.warning("Noch keine Runs vorhanden.")
@@ -554,144 +552,138 @@ elif menu == "Run Analyse":
             )
             st.dataframe(periods_df, use_container_width=True, hide_index=True)
 
-elif menu == "KI Optimierer":
-    st.subheader("KI Optimierer")
-    st.caption("Schnelle datenbasierte Empfehlung fuer Preis, Menge und Risiko.")
+elif menu == "Empfehlungen":
+    st.subheader("Schnelle Entscheidungshilfen")
+    st.caption("Praktische Empfehlungen basierend auf Spielphase und Marktlage")
 
     col1, col2 = st.columns(2)
-    market = col1.slider("Marktwachstum %", -15, 20, 5)
-    current_price = col1.slider("Aktueller Preis", 450, 700, 559)
-    awareness = col2.slider("Bekanntheit", 50, 200, 110)
-    innovation = col2.slider("Innovation", 100, 400, 230)
+    market_growth = col1.slider("Marktwachstum %", -15, 20, 5)
+    current_period = col2.selectbox("Aktuelle Periode", list(range(1, 9)), index=0)
 
-    price_adjustment = (12 if innovation > 220 else -10) + (6 if awareness > 110 else -6)
-    optimal_price = current_price + price_adjustment
-    demand_score = (
-        100
-        + market * 3
-        + (awareness - 100) * 0.45
-        + (innovation - 200) * 0.35
-        - max(0, optimal_price - current_price) * 0.55
-    )
-    order = max(1000, int(demand_score * 44))
-    win_prob = max(
-        5,
-        min(
-            95,
-            int(
-                48
-                + market * 2
-                + (innovation - 220) * 0.16
-                + (awareness - 110) * 0.18
-            ),
-        ),
-    )
-    risk = "Niedrig" if market >= 2 else "Mittel" if market > -5 else "Hoch"
+    # Phase bestimmen
+    if current_period <= 2:
+        phase = "Frühphase"
+        phase_desc = "Fokus: Vertrauen aufbauen, effizient arbeiten"
+        base_price = 569
+        ads_rec = "90k-130k"
+        devs_rec = 5
+        sales_rec = "4-5"
+        qty_factor = 1.0
+    elif current_period <= 5:
+        phase = "Mittelphase"
+        phase_desc = "Fokus: Marktanteil gewinnen, Innovation steigern"
+        base_price = 559
+        ads_rec = "140k-180k"
+        devs_rec = 6
+        sales_rec = 6
+        qty_factor = 1.1
+    else:
+        phase = "Endgame"
+        phase_desc = "Fokus: BSC maximieren, saubere Performance"
+        base_price = 579
+        ads_rec = "180k-230k"
+        devs_rec = 7
+        sales_rec = 7
+        qty_factor = 1.2
 
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("Empfohlener Preis", format_currency(float(optimal_price)))
-    c2.metric("Empfohlene Bestellmenge", f"{order:,}")
-    c3.metric("Risiko", risk)
-    c4.metric("Siegchance", f"{win_prob}%")
-
-    recommendations = []
-    if awareness < 115:
-        recommendations.append("Werbung leicht erhoehen, um Bekanntheit zu stabilisieren.")
-    if innovation < 220:
-        recommendations.append("Innovation ausbauen, damit hoehere Preise glaubwuerdiger werden.")
-    if market < 0:
-        recommendations.append("Bestellmenge konservativ halten und Marge absichern.")
-    if not recommendations:
-        recommendations.append("Deine Parameter sind solide. Fokus auf saubere Ausfuehrung.")
-
-    st.markdown("**Empfehlung**")
-    for item in recommendations:
-        st.write(f"- {item}")
-
-elif menu == "Autopilot":
-    st.subheader("Autopilot")
-    st.caption("Schnellentscheidung nach Spielphase und Marktlage.")
-
-    market = st.number_input("Marktwachstum %", value=5)
-    phase = st.selectbox("Spielphase", ["Frueh (1-2)", "Mitte (3-5)", "Endgame (6-8)"])
-
-    base_price = 559 if phase != "Endgame (6-8)" else 579
-    ads = 120000 if phase == "Frueh (1-2)" else 165000 if phase == "Mitte (3-5)" else 220000
-    devs = 5 if phase == "Frueh (1-2)" else 6 if phase == "Mitte (3-5)" else 7
-    sales = 5 if phase == "Frueh (1-2)" else 6 if phase == "Mitte (3-5)" else 7
-    qty = max(2500, int((4000 + market * 120) * (1.15 if phase == "Endgame (6-8)" else 1.0)))
-
-    if market > 8:
-        ads += 25000
-        sales += 1
-        qty = int(qty * 1.08)
-    elif market < 0:
+    # Marktadjustierung
+    if market_growth > 8:
+        base_price += 10
+        ads_rec = "erhöhen (+25k)"
+        sales_rec = str(int(sales_rec) + 1) if isinstance(sales_rec, int) else f"{sales_rec.split('-')[0]}-{int(sales_rec.split('-')[1]) + 1}"
+        qty_factor *= 1.08
+    elif market_growth < 0:
         base_price -= 15
-        qty = int(qty * 0.92)
+        qty_factor *= 0.92
+
+    base_qty = int(4000 * qty_factor)
+
+    st.markdown(f"### {phase} (Periode {current_period})")
+    st.info(phase_desc)
 
     c1, c2, c3, c4, c5 = st.columns(5)
-    c1.metric("Preis", format_currency(float(base_price)))
-    c2.metric("Werbung", format_currency(float(ads)))
-    c3.metric("Entwickler", devs)
-    c4.metric("Vertrieb", sales)
-    c5.metric("Bestellmenge", f"{qty:,}")
+    c1.metric("Preis", f"{base_price} EUR")
+    c2.metric("Werbung", ads_rec)
+    c3.metric("Entwickler", devs_rec)
+    c4.metric("Vertrieb", sales_rec)
+    c5.metric("Bestellmenge", f"{base_qty:,}")
 
-    st.success(
-        "Autopilot-Regel: Fruehe Phase = Effizienz, Mitte = Marktanteil, Ende = BSC und saubere Performance."
-    )
-
-elif menu == "Konkurrenz Radar":
-    st.subheader("Konkurrenz Radar")
-    st.caption("Einfacher Bedrohungscheck auf Basis bekannter Konkurrenzwerte.")
-
-    col1, col2, col3 = st.columns(3)
-    cprice = col1.slider("Konkurrenz Preis", 450, 700, 559)
-    cads = col2.slider("Konkurrenz Werbung", 0, 500000, 150000)
-    cinnovation = col3.slider("Konkurrenz Innovation", 50, 400, 180)
-
-    if cprice < 540 and cads > 250000:
-        status = "Aggressiver Marktanteils-Angriff"
-        status_type = st.error
-    elif cprice > 590 and cinnovation > 220:
-        status = "Premiumstrategie mit starkem Qualitaetsfokus"
-        status_type = st.info
+    st.markdown("**Wichtige Tipps:**")
+    tips = []
+    if current_period <= 2:
+        tips = [
+            "Vertrauen durch saubere Prozesse aufbauen",
+            "Nicht zu aggressiv starten",
+            "Gewinn machen, aber BSC nicht vernachlässigen"
+        ]
+    elif current_period <= 5:
+        tips = [
+            "Marktanteil aktiv ausbauen",
+            "Innovation über 200 halten",
+            "Bekanntheit systematisch steigern"
+        ]
     else:
-        status = "Ausgewogene Konkurrenzstrategie"
-        status_type = st.success
+        tips = [
+            "BSC ist wichtiger als reiner Gewinn",
+            "Arbeitsplätze schaffen zählt",
+            "Keine Fehler in den letzten Perioden"
+        ]
 
-    threat = min(100, int((700 - cprice) * 0.18 + cads / 7000 + cinnovation * 0.08))
-    reaction = (
-        "Reagiere mit Werbung und Vertrieb."
-        if threat >= 70
-        else "Halte Preisdisziplin und beobachte die naechste Periode."
-    )
+    if market_growth > 8:
+        tips.append("Boommarkt: Mehr investieren!")
+    elif market_growth < 0:
+        tips.append("Schwacher Markt: Konservativ bleiben")
 
-    status_type(status)
-    r1, r2 = st.columns(2)
-    r1.metric("Bedrohungslevel", f"{threat}%")
-    r2.metric("Empfohlene Reaktion", "Offensiv" if threat >= 70 else "Kontrolliert")
-    st.write(reaction)
+    for tip in tips:
+        st.write(f"• {tip}")
 
-elif menu == "Strategie Guide":
-    st.subheader("Strategie Guide")
-    st.markdown(
-        """
-        **Fruehe Phasen**
-        - Fokus auf Effizienz, saubere Prozesse und Vertrauen.
+elif menu == "Run Vergleich":
+    st.subheader("Run Vergleich")
+    st.caption("Vergleiche deine Runs und lerne aus Erfolgen/Misserfolgen")
 
-        **Mittlere Phasen**
-        - Marktanteil, Bekanntheit und Innovation aktiv ausbauen.
+    if runs_df.empty:
+        st.warning("Noch keine Runs zum Vergleichen vorhanden.")
+    else:
+        # BSC vs Gewinn Scatterplot
+        scatter = px.scatter(
+            runs_df,
+            x="end_profit",
+            y="end_bsc",
+            text="name",
+            title="Alle Runs: BSC vs. Gewinn",
+            color="end_bsc",
+            color_continuous_scale="RdYlGn",
+            size="end_bsc",
+        )
+        scatter.update_traces(textposition="top center")
+        st.plotly_chart(scatter, use_container_width=True)
 
-        **Endgame**
-        - BSC maximieren, Fehler vermeiden, Daten sauber aussteuern.
+        # Top 5 nach BSC
+        st.subheader("🏆 Top Runs nach BSC")
+        top_bsc = runs_df.nlargest(5, "end_bsc")[["name", "end_bsc", "end_profit", "place"]]
+        top_bsc.columns = ["Run", "BSC", "Gewinn", "Platz"]
+        st.dataframe(top_bsc, use_container_width=True, hide_index=True)
 
-        **Boommarkt**
-        - Werbung und Vertrieb mutiger hochfahren.
+        # Top 5 nach Gewinn
+        st.subheader("💰 Top Runs nach Gewinn")
+        top_profit = runs_df.nlargest(5, "end_profit")[["name", "end_profit", "end_bsc", "place"]]
+        top_profit.columns = ["Run", "Gewinn", "BSC", "Platz"]
+        st.dataframe(top_profit, use_container_width=True, hide_index=True)
 
-        **Schwacher Markt**
-        - Preise moderat anpassen und Bestellmengen diszipliniert halten.
-        """
-    )
-    st.info(
-        "Deploy-Tipp: Fuer Streamlit Community Cloud einfach dieses Repo hochladen und als Startdatei 'app.py' auswaehlen."
-    )
+        # Durchschnittswerte
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Ø BSC", f"{runs_df['end_bsc'].mean():.1f}")
+        col2.metric("Ø Gewinn", format_currency(float(runs_df["end_profit"].mean())))
+        col3.metric("Beste BSC", f"{runs_df['end_bsc'].max():.1f}")
+
+        # Lernpunkte
+        st.subheader("📚 Lernpunkte aus deinen Runs")
+        best_run = runs_df.loc[runs_df["end_bsc"].idxmax()]
+        worst_run = runs_df.loc[runs_df["end_bsc"].idxmin()]
+
+        st.success(f"**Bester Run ({best_run['name']}):** BSC {best_run['end_bsc']:.1f}, Gewinn {format_currency(float(best_run['end_profit']))}")
+
+        if len(runs_df) > 1:
+            st.warning(f"**Verbesserungspotenzial ({worst_run['name']}):** BSC nur {worst_run['end_bsc']:.1f} - analysiere was schief lief")
+
+        st.info("**Wichtige Erkenntnisse:** BSC zählt mehr als Gewinn allein. Arbeitsplätze, Innovation und Nachhaltigkeit sind entscheidend für den Sieg.")
