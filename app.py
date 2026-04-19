@@ -1637,24 +1637,28 @@ with tab6:
             st.rerun()
 
     with col2:
-        team_name_input = st.text_input("Team-Name", key="team_name_minimal")
+        team_name_input = st.text_input("Team-Name", key="team_name_minimal", placeholder="z.B. Jugend Gründet Team")
         if st.button("➕ Team erstellen", use_container_width=True, disabled=not team_name_input.strip()):
             if team_name_input.strip():
-                # Automatische Team-Code Generierung
-                team_code = f"TEAM-{secrets.token_hex(3).upper()}"
-                existing_team = query_df("SELECT id FROM teams WHERE team_code = ?", (team_code,))
-                if not existing_team.empty:
-                    team_code = f"TEAM-{secrets.token_hex(4).upper()}"
+                # Validierung: Team-Name nicht zu lang
+                if len(team_name_input.strip()) > 50:
+                    st.error("❌ Team-Name zu lang (max. 50 Zeichen)!")
+                else:
+                    # Automatische Team-Code Generierung
+                    team_code = f"TEAM-{secrets.token_hex(3).upper()}"
+                    existing_team = query_df("SELECT id FROM teams WHERE team_code = ?", (team_code,))
+                    if not existing_team.empty:
+                        team_code = f"TEAM-{secrets.token_hex(4).upper()}"
 
-                execute("INSERT INTO teams(team_code, team_name, created_by_device) VALUES(?, ?, ?)",
-                       (team_code, team_name_input.strip(), st.session_state.device_id))
+                    execute("INSERT INTO teams(team_code, team_name, created_by_device) VALUES(?, ?, ?)",
+                           (team_code, team_name_input.strip(), st.session_state.device_id))
 
-                st.session_state.team_code = team_code
-                st.session_state.private_mode = False
-                st.success(f"✅ Team '{team_name_input.strip()}' erstellt!")
-                st.success(f"🔒 **Geheimer Team-Code:** {team_code}")
-                st.info("📤 Teile diesen Code nur mit vertrauten Teammitgliedern!")
-                st.rerun()
+                    st.session_state.team_code = team_code
+                    st.session_state.private_mode = False
+                    st.success(f"✅ Team '{team_name_input.strip()}' erstellt!")
+                    st.success(f"🔒 **Geheimer Team-Code:** {team_code}")
+                    st.info("📤 Teile diesen Code nur mit vertrauten Teammitgliedern!")
+                    st.rerun()
 
     with col3:
         team_code_input = st.text_input("Team-Code eingeben", placeholder="z.B. TEAM-ABC123 oder ABC123", key="team_code_minimal")
@@ -1696,10 +1700,14 @@ with tab6:
         current_team_count = len(teams_df)
         st.info(f"Du hast {current_team_count} Team(s) erstellt")
 
-        # Debug: Zeige vorhandene Teams
-        with st.expander("📋 Vorhandene Teams (Debug)"):
-            for _, team in teams_df.iterrows():
-                st.write(f"**{team['team_name']}** - Code: `{team['team_code']}`")
+        # Debug: Zeige nur Teams des aktuellen Benutzers
+        user_teams = teams_df[teams_df['created_by_device'] == st.session_state.device_id]
+        if not user_teams.empty:
+            with st.expander("📋 Deine Teams (privat)"):
+                for _, team in user_teams.iterrows():
+                    st.write(f"**{team['team_name']}** - Code: `{team['team_code']}`")
+        else:
+            st.info("Du hast noch keine Teams erstellt.")
 
         # Team-Code Eingabe für Löschung
         delete_team_code = st.text_input("Team-Code zum Löschen", key="delete_team_code", placeholder="TEAM-ABC123 oder ABC123")
