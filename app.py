@@ -732,9 +732,9 @@ with col2:
     )
 
 # EINZELNE TABS STATT SIDEBAR
-tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+tab1, tab2, tab3, tab4, tab5, tab6, tab7, tab8 = st.tabs([
     "🏠 Dashboard", "⚡ Quick Input", "🎯 Entscheidungen", "📊 Analyse",
-    "🚨 Frühwarnsystem", "⚙️ Einstellungen", "🗑️ Run Management"
+    "🚨 Frühwarnsystem", "⚙️ Einstellungen", "🗑️ Run Management", "📖 Hilfe"
 ])
 
 # TAB 1: LIVE CENTER - IMMER SICHTBAR
@@ -1072,6 +1072,230 @@ with tab3:
         **⚠️ Risiken:** {cons_risks}
         """)
         st.markdown("</div>", unsafe_allow_html=True)
+
+# TAB 8: HILFE / BEDIENUNGSANLEITUNG
+with tab8:
+    st.markdown("# 📖 Planspiel Tracker JG - Bedienungsanleitung")
+
+    st.markdown("## 🎯 Überblick")
+    st.markdown("""
+    **Planspiel Tracker JG** ist ein professionelles Tool für Jugend Gründet Teams, das BSC-Optimierung, Live-Entscheidungen und Siegchancen-Maximierung ermöglicht.
+
+    ### ✨ Hauptfunktionen
+    - **🏠 Dashboard** - Live-Übersicht mit interaktiven Charts
+    - **⚡ Quick Input** - 30-Sekunden Dateneingabe pro Periode
+    - **🎯 Entscheidungen** - Strategische Empfehlungen mit Begründungen
+    - **📊 Analyse** - Erweiterte Visualisierungen & Korrelationen
+    - **🚨 Frühwarnsystem** - Risikoanalyse & präventive Hinweise
+    - **👥 Teams** - Kollaboration mit automatischen Team-Codes
+    - **💾 Backup** - Daten-Export/Import für Cross-Device-Sync
+    """)
+
+    st.markdown("---")
+
+    st.markdown("## 🚀 Erste Schritte")
+
+    with st.expander("📋 App starten und ersten Run erstellen"):
+        st.markdown("""
+        ### 1. App starten
+        ```bash
+        pip install -r requirements.txt
+        streamlit run app.py
+        ```
+
+        ### 2. Ersten Run erstellen
+        1. Gehe zum Tab **⚡ Quick Input**
+        2. Klicke **➕ Neuer Run**
+        3. Gib einen Namen ein (z.B. "Unser Jugend Gründet Run")
+        4. Der Run wird automatisch erstellt
+
+        ### 3. Daten eingeben
+        1. Wähle deinen Run aus dem Dropdown
+        2. Wähle die Periode (1-8)
+        3. Gib deine Entscheidungen ein:
+           - Preise für Markt 1 (und Markt 2 ab Periode 5)
+           - Mengen für beide Märkte
+           - Werbebudget, Entwickler, Vertrieb
+           - Prozessbudget
+        4. Gib die Periodenergebnisse ein (Gewinn, BSC, etc.)
+        5. Klicke **💾 Periode speichern**
+        """)
+
+    with st.expander("👥 Team-Funktionen"):
+        st.markdown("""
+        ### Automatische Geräte-Trennung
+        Jedes Gerät bekommt automatisch eine eigene ID für separate Datenspeicherung. Keine Konfiguration nötig!
+
+        ### Team erstellen
+        1. Gehe zum Tab **⚙️ Einstellungen**
+        2. Gib einen Team-Namen ein (z.B. "JG Team Alpha")
+        3. Klicke **🎯 Team erstellen**
+        4. **WICHTIG:** Merke dir den angezeigten **Team-Code** (z.B. `TEAM-A1B2C3`)
+        5. Teile den Code nur mit vertrauten Teammitgliedern
+
+        ### Team beitreten
+        1. Gehe zum Tab **⚙️ Einstellungen**
+        2. Gib den Team-Code ein (z.B. `TEAM-A1B2C3` oder nur `A1B2C3`)
+        3. Klicke **🎯 Beitreten**
+        4. Du siehst jetzt die gemeinsamen Daten
+
+        ### Team verlassen
+        1. Klicke **🔒 Privatmodus** in den Einstellungen
+        2. Du bist wieder in deinem privaten Modus
+
+        ### Teams verwalten
+        - **Alle Teams anzeigen:** In den Einstellungen siehst du alle verfügbaren Teams
+        - **Team löschen:** Klicke das 🗑️ Symbol neben einem Team
+        - **Team-Codes:** Nur der Ersteller sieht den geheimen Code
+        """)
+
+    with st.expander("📊 Dashboard verwenden"):
+        st.markdown("""
+        ### Live-Übersicht
+        - **Aktive Runs:** Anzahl laufender Simulationen
+        - **Bester BSC:** Höchster erreichter BSC-Score
+        - **Abgeschlossene Runs:** Anzahl fertig gespielter Runs
+        - **Ø BSC:** Durchschnittlicher BSC aller Runs
+
+        ### Visualisierungen
+        - **BSC vs. Gewinn:** Scatterplot zur Performance-Analyse
+        - **BSC-Verteilung:** Histogramm aller BSC-Werte
+        - **Zeitliche Entwicklung:** BSC- und Gewinn-Trends über Perioden
+
+        ### Top-Performer
+        - **Top 5 BSC-Scores:** Beste Ergebnisse
+        - **Top 5 Gewinne:** Höchste Profite
+        """)
+
+    with st.expander("🎯 Entscheidungshilfe"):
+        st.markdown("""
+        ### Strategische Empfehlungen
+        1. Wähle die **Periode** und **Marktwachstum**
+        2. Gib deinen **Konkurrenzpreis** und **Marktanteil** ein
+        3. Erhalte **drei Strategien:**
+           - 🟢 **Konservativ:** Risikominimierung
+           - 🟡 **Ausgewogen:** Optimale Balance
+           - 🔴 **Aggressiv:** Volles Risiko
+
+        ### BSC-Erinnerung
+        **WICHTIG:** Jugend Gründet bewertet nicht nur Gewinn!
+        - **Innovation** (Forschung & Entwicklung)
+        - **Bekanntheit** (Marketing & PR)
+        - **Arbeitsplätze** (Personalaufstockung)
+        - **Nachhaltigkeit** (strategische Entscheidungen)
+        """)
+
+    with st.expander("📈 Analyse-Funktionen"):
+        st.markdown("""
+        ### Run-Analyse
+        1. Wähle einen Run aus
+        2. Sieh dir **Metriken** an: Perioden, Max BSC, Max Gewinn
+        3. Analysiere **Visualisierungen:**
+           - KPIs im Zeitverlauf
+           - Korrelationsmatrix
+           - Radar-Charts für BSC-Komponenten
+           - ROI-Analyse pro Periode
+
+        ### Korrelationsanalyse
+        - **Scatterplot-Matrix:** Zusammenhänge zwischen Variablen
+        - **Korrelations-Heatmap:** Stärke der Beziehungen
+        - **Wachstumsraten:** Perioden-über-Perioden Entwicklung
+        """)
+
+    with st.expander("🚨 Frühwarnsystem"):
+        st.markdown("""
+        ### Risikoanalyse
+        Das System erkennt automatisch kritische Risiken:
+        - **Überinvestition:** Zu hohe Ausgaben vs. Gewinn
+        - **Marktverlust:** Zu niedriger Marktanteil
+        - **BSC-Verlust:** Fehlende Innovation/Bekanntheit
+        - **Planungsfehler:** Zu große Mengenänderungen
+
+        ### Präventive Hinweise
+        - **Frühphase:** Werbung aufbauen
+        - **Endgame:** Innovation maximieren
+        - **Marktposition:** Marktanteil überwachen
+        """)
+
+    with st.expander("💾 Daten-Management"):
+        st.markdown("""
+        ### Backup erstellen
+        1. Gehe zu **⚙️ Einstellungen**
+        2. Klicke **💾 Backup** (oben rechts)
+        3. JSON-Datei wird heruntergeladen
+
+        ### Daten importieren
+        1. Gehe zu **⚙️ Einstellungen**
+        2. Ziehe eine JSON-Backup-Datei in den Upload-Bereich
+        3. Klicke **🔄 Daten importieren**
+
+        ### Runs verwalten
+        1. Gehe zu **🗑️ Run Management**
+        2. Sieh dir die **Run-Übersicht** an
+        3. Zum Löschen: Run auswählen, Namen bestätigen, **🗑️ Run endgültig löschen**
+        """)
+
+    st.markdown("---")
+
+    st.markdown("## 📱 Mobile Nutzung")
+    st.markdown("""
+    Das Tool ist vollständig mobil optimiert:
+    - **Touch-freundliche Buttons** (44px Mindestgröße)
+    - **Responsive Layout** - passt sich automatisch an
+    - **Keine Zoom-Probleme** auf iOS
+    - **Vollständige Funktionalität** auf Smartphones & Tablets
+    """)
+
+    st.markdown("---")
+
+    st.markdown("## 🆘 Fehlerbehebung")
+
+    with st.expander("Häufige Probleme"):
+        st.markdown("""
+        ### Team-Code funktioniert nicht
+        - Stelle sicher, dass du den **genauen Code** eingibst
+        - Codes sind case-sensitive (Groß-/Kleinschreibung)
+        - Der Code muss mit `TEAM-` beginnen oder du gibst nur den Teil danach ein
+
+        ### Daten werden nicht gespeichert
+        - Auf Streamlit Cloud: Nutze regelmäßig den **Backup-Button**
+        - Lokal: Daten bleiben in `jugend_gruendet.db` erhalten
+
+        ### App reagiert nicht
+        - **🔄 Aktualisieren** Button in den Einstellungen
+        - Seite neu laden (F5)
+        - Bei Streamlit Cloud: App neu starten
+
+        ### Team-Daten verschwinden
+        - Teams können von jedem gelöscht werden
+        - Erstelle bei Bedarf ein neues Team
+        - Nutze regelmäßige Backups
+        """)
+
+    st.markdown("---")
+
+    st.markdown("## 📋 Wichtige Jugend Gründet Tipps")
+
+    with st.expander("BSC-Maximierung"):
+        st.markdown("""
+        - **Nicht zu konservativ:** Zu wenig Mitarbeiter = BSC-Verlust
+        - **Werbung wirkt langfristig:** Früh investieren zahlt sich aus
+        - **Innovation zählt:** Forschung & Entwicklung nicht vernachlässigen
+        - **Arbeitsplätze schaffen:** Personal aufstocken für BSC-Punkte
+        """)
+
+    with st.expander("Strategische Entscheidungen"):
+        st.markdown("""
+        - **Markt 2 ab Periode 5:** Frühere Perioden haben nur Markt 1
+        - **Periodenbewusst:** Tool passt sich automatisch an
+        - **Balance halten:** Gewinn UND BSC sind wichtig
+        - **Risiken vermeiden:** Frühwarnsystem nutzen
+        """)
+
+    st.markdown("---")
+
+    st.success("**Viel Erfolg bei Jugend Gründet!** 🏆")
+    st.info("**Tipp:** Nutze regelmäßige Backups, besonders auf Streamlit Cloud!")
 
     with col2:
         st.markdown(
