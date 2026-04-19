@@ -705,14 +705,127 @@ def get_runs_with_team_filter():
 
 runs_df = get_runs_with_team_filter()
 
-# KOMPAKTER HEADER
+# KOMPAKTER HEADER MIT TEAM-SCHNELLZUgriff
 st.title("🎯 Planspiel Tracker JG")
 st.caption("Live-Entscheidungshilfe für Jugend Gründet Teams")
 
-# Backup Button
-col1, col2, col3 = st.columns([6, 1, 1])
+# Team-Status und Schnellzugriff
+col1, col2, col3, col4 = st.columns([4, 1, 1, 1])
+
+with col1:
+    # Team-Status Anzeige
+    if st.session_state.private_mode:
+        st.info("🔒 **Privatmodus** - nur deine Daten")
+    elif st.session_state.team_code:
+        teams_df = query_df("SELECT * FROM teams WHERE team_code = ?", (st.session_state.team_code,))
+        team_name = teams_df.iloc[0]['team_name'] if not teams_df.empty else "Unbekanntes Team"
+        st.success(f"👥 **Team:** {team_name}")
+    else:
+        st.info("🔒 **Privatmodus** - nur deine Daten")
 
 with col2:
+    # Team-Schnellzugriff
+    if st.button("👥 Team", help="Team verwalten"):
+        with st.popover("Team-Schnellzugriff"):
+            st.markdown("### 🎯 Team-Aktionen")
+
+            # Aktueller Status
+            if st.session_state.private_mode:
+                st.info("🔒 Du bist im Privatmodus")
+            elif st.session_state.team_code:
+                teams_df = query_df("SELECT * FROM teams WHERE team_code = ?", (st.session_state.team_code,))
+                team_name = teams_df.iloc[0]['team_name'] if not teams_df.empty else "Unbekanntes Team"
+                st.success(f"👥 Aktives Team: {team_name}")
+
+                if st.button("🔄 Team verlassen", type="secondary", use_container_width=True):
+                    st.session_state.team_code = None
+                    st.session_state.private_mode = True
+                    st.success("✅ Team verlassen - zurück im Privatmodus!")
+                    st.rerun()
+            else:
+                st.info("🔒 Du bist im Privatmodus")
+
+            st.markdown("---")
+
+            # Schnell-Team erstellen
+            st.markdown("**Neues Team erstellen:**")
+            quick_team_name = st.text_input("Team-Name", placeholder="z.B. Mein Team", key="quick_team_name")
+
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("🎯 Team erstellen", type="primary", use_container_width=True, disabled=not quick_team_name.strip()):
+                    if quick_team_name.strip():
+                        # Generiere Team-Code
+                        team_code = f"TEAM-{secrets.token_hex(3).upper()}"
+
+                        # Prüfe ob Team-Code bereits existiert (sehr unwahrscheinlich)
+                        existing_team = query_df("SELECT id FROM teams WHERE team_code = ?", (team_code,))
+                        if not existing_team.empty:
+                            team_code = f"TEAM-{secrets.token_hex(4).upper()}"
+
+                        # Team in Datenbank speichern
+                        execute(
+                            "INSERT INTO teams(team_code, team_name, created_by_device) VALUES(?, ?, ?)",
+                            (team_code, quick_team_name.strip(), st.session_state.device_id)
+                        )
+
+                        # Team beitreten
+                        st.session_state.team_code = team_code
+                        st.session_state.private_mode = False
+
+                        st.success(f"✅ Team '{quick_team_name.strip()}' erstellt!")
+                        st.success(f"📋 Code: {team_code}")
+                        st.info("Teile diesen Code mit deinen Teammitgliedern!")
+                        st.rerun()
+
+            with col2:
+                if st.button("🔒 Privatmodus", type="secondary", use_container_width=True):
+                    st.session_state.team_code = None
+                    st.session_state.private_mode = True
+                    st.success("🔒 Privatmodus aktiviert!")
+                    st.rerun()
+
+            # Team beitreten
+            st.markdown("---")
+            st.markdown("**Team beitreten:**")
+            quick_team_code = st.text_input("Team-Code eingeben", placeholder="z.B. TEAM-ABC123", key="quick_team_code")
+
+            if st.button("🔗 Beitreten", type="secondary", use_container_width=True, disabled=not quick_team_code.strip()):
+                if quick_team_code.strip():
+                    team_code = quick_team_code.strip().upper()
+
+                    # Prüfe ob Team existiert
+                    team_data = query_df("SELECT * FROM teams WHERE team_code = ?", (team_code,))
+                    if team_data.empty:
+                        st.error(f"❌ Team-Code '{team_code}' nicht gefunden!")
+                    else:
+                        # Team beitreten
+                        st.session_state.team_code = team_code
+                        st.session_state.private_mode = False
+
+                        team_name = team_data.iloc[0]['team_name']
+                        st.success(f"✅ Team '{team_name}' beigetreten!")
+                        st.rerun()
+
+            # Verfügbare Teams anzeigen
+            teams_df = query_df("SELECT * FROM teams ORDER BY created DESC LIMIT 5")
+            if not teams_df.empty:
+                st.markdown("---")
+                st.markdown("**Verfügbare Teams:**")
+
+                for _, team in teams_df.iterrows():
+                    is_current_team = (st.session_state.team_code == team['team_code'] and not st.session_state.private_mode)
+
+                    if is_current_team:
+                        st.success(f"🎯 **{team['team_name']}** (aktiv)")
+                    else:
+                        if st.button(f"🔗 {team['team_name']}", key=f"quick_join_{team['team_code']}", help=f"Team {team['team_name']} beitreten"):
+                            st.session_state.team_code = team['team_code']
+                            st.session_state.private_mode = False
+                            st.success(f"✅ Team '{team['team_name']}' beigetreten!")
+                            st.rerun()
+
+with col3:
     st.download_button(
         "💾 Backup",
         data=build_backup_json(),
