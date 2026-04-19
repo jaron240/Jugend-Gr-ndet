@@ -1724,26 +1724,22 @@ with tab6:
                         st.rerun()
 
             with col3:
+                # Direkte Löschung mit sofortiger Bestätigung
                 if st.button("🗑️", key=f"delete_{team['team_code']}", help=f"Team {team['team_name']} löschen"):
                     team_name = team['team_name']
                     team_code = team['team_code']
-                    # Bestätigung
-                    confirm_key = f"confirm_delete_{team_code}"
-                    if confirm_key not in st.session_state:
-                        st.session_state[confirm_key] = False
 
-                    if not st.session_state[confirm_key]:
-                        st.warning(f"Team '{team_name}' ({team_code}) wirklich löschen?")
-                        if st.button("✅ Ja, löschen", key=f"confirm_yes_{team_code}"):
-                            st.session_state[confirm_key] = True
-                            st.rerun()
-                    else:
-                        # Lösche Team
-                        execute("DELETE FROM teams WHERE team_code = ?", (team_code,))
-                        # Lösche alle Runs dieses Teams
-                        execute("DELETE FROM runs WHERE team_code = ?", (team_code,))
-                        st.success(f"✅ Team '{team_name}' gelöscht!")
-                        st.rerun()
+                    # Sofortige Löschung
+                    execute("DELETE FROM teams WHERE team_code = ?", (team_code,))
+                    execute("DELETE FROM runs WHERE team_code = ?", (team_code,))
+                    st.success(f"✅ Team '{team_name}' gelöscht!")
+
+                    # Session-State zurücksetzen wenn aktives Team gelöscht wurde
+                    if st.session_state.team_code == team_code:
+                        st.session_state.team_code = None
+                        st.session_state.private_mode = True
+
+                    st.rerun()
 
     st.markdown("---")
     st.subheader("🔒 Geräte-Information")
