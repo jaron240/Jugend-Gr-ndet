@@ -173,112 +173,246 @@ def save_period(
 init_db()
 
 st.set_page_config(
-    page_title="Jugend Gruender - Live Tool",
+    page_title="Jugend Gruender - Professional Tool",
     layout="wide",
-    initial_sidebar_state="collapsed",
+    initial_sidebar_state="expanded",
 )
 
 st.markdown(
     """
     <style>
     .stApp {
-        background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
-        color: #e2e8f0;
+        background: #f8fafc;
+        color: #1e293b;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
     .block-container {
         padding-top: 1rem;
-        padding-bottom: 1rem;
+        padding-bottom: 2rem;
         max-width: 1400px;
     }
     .main-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
         color: white;
-        padding: 1.5rem;
-        border-radius: 15px;
-        margin-bottom: 1.5rem;
+        padding: 2rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
         text-align: center;
-        box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 10px 40px rgba(30, 64, 175, 0.2);
+        position: relative;
+        overflow: hidden;
     }
-    .quick-input {
-        background: rgba(30, 41, 59, 0.8);
-        border: 1px solid #475569;
+    .main-header::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        opacity: 0.1;
+    }
+    .main-header h1 {
+        position: relative;
+        z-index: 1;
+        margin: 0;
+        font-size: 2.5rem;
+        font-weight: 700;
+    }
+    .main-header p {
+        position: relative;
+        z-index: 1;
+        margin: 0.5rem 0 0;
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    .dashboard-card {
+        background: white;
+        border: 1px solid #e2e8f0;
         border-radius: 12px;
         padding: 1.5rem;
         margin: 1rem 0;
-        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    .dashboard-card:hover {
+        box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+    .metric-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        text-align: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        transition: all 0.3s ease;
+    }
+    .metric-card:hover {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+    .metric-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #1e40af;
+        margin: 0.5rem 0;
+    }
+    .metric-label {
+        font-size: 0.9rem;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0;
+    }
+    .input-section {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 2rem;
+        margin: 1.5rem 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
     }
     .decision-card {
-        background: rgba(30, 41, 59, 0.9);
-        border: 2px solid #475569;
+        background: white;
+        border: 2px solid #e2e8f0;
         border-radius: 12px;
-        padding: 1.5rem;
+        padding: 2rem;
         margin: 1rem 0;
-        backdrop-filter: blur(10px);
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
     }
-    .conservative { border-left: 5px solid #10b981; box-shadow: 0 0 20px rgba(16, 185, 129, 0.2); }
-    .balanced { border-left: 5px solid #f59e0b; box-shadow: 0 0 20px rgba(245, 158, 11, 0.2); }
-    .aggressive { border-left: 5px solid #ef4444; box-shadow: 0 0 20px rgba(239, 68, 68, 0.2); }
-    .warning-card {
-        background: rgba(245, 101, 101, 0.1);
-        border: 1px solid #f87171;
+    .decision-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 4px;
+        height: 100%;
+        background: #3b82f6;
+    }
+    .conservative { border-color: #10b981; }
+    .conservative::before { background: #10b981; }
+    .balanced { border-color: #f59e0b; }
+    .balanced::before { background: #f59e0b; }
+    .aggressive { border-color: #ef4444; }
+    .aggressive::before { background: #ef4444; }
+    .decision-card:hover {
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+    .strategy-section {
+        background: #f1f5f9;
+        border-radius: 12px;
+        padding: 2rem;
+        margin: 1.5rem 0;
+        border-left: 4px solid #3b82f6;
+    }
+    .warning-alert {
+        background: #fef3c7;
+        border: 1px solid #f59e0b;
         border-radius: 8px;
         padding: 1rem;
         margin: 1rem 0;
+        color: #92400e;
     }
-    .success-card {
-        background: rgba(16, 185, 129, 0.1);
+    .success-alert {
+        background: #d1fae5;
         border: 1px solid #10b981;
         border-radius: 8px;
         padding: 1rem;
         margin: 1rem 0;
-    }
-    .metric-box {
-        background: rgba(30, 41, 59, 0.8);
-        border: 1px solid #475569;
-        border-radius: 10px;
-        padding: 1rem;
-        text-align: center;
-        backdrop-filter: blur(10px);
-    }
-    .input-field {
-        background: rgba(51, 65, 85, 0.8);
-        border: 1px solid #64748b;
-        border-radius: 8px;
-        color: #e2e8f0;
-        padding: 0.5rem;
+        color: #065f46;
     }
     .stButton button {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #3b82f6;
         color: white;
         border: none;
         border-radius: 8px;
-        padding: 0.5rem 1rem;
-        font-weight: bold;
+        padding: 0.75rem 1.5rem;
+        font-weight: 600;
         transition: all 0.3s ease;
+        box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
     }
     .stButton button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+        background: #2563eb;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        transform: translateY(-1px);
     }
-    .stSelectbox, .stNumberInput, .stSlider {
-        background: rgba(30, 41, 59, 0.8);
-        border-radius: 8px;
-        border: 1px solid #475569;
+    .stButton button:active {
+        transform: translateY(0);
     }
-    .stTabs [data-baseweb="tab-list"] {
-        background: rgba(30, 41, 59, 0.8);
+    .delete-btn button {
+        background: #dc2626;
+    }
+    .delete-btn button:hover {
+        background: #b91c1c;
+        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+    }
+    .primary-btn button {
+        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+        font-size: 1.1rem;
+        padding: 1rem 2rem;
+    }
+    .stSelectbox, .stNumberInput, .stSlider, .stTextInput {
+        background: white;
+        border: 1px solid #d1d5db;
         border-radius: 8px;
         padding: 0.5rem;
+        transition: all 0.3s ease;
+    }
+    .stSelectbox:hover, .stNumberInput:hover, .stSlider:hover, .stTextInput:hover {
+        border-color: #9ca3af;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    .stTabs [data-baseweb="tab-list"] {
+        background: white;
+        border-radius: 12px;
+        padding: 0.5rem;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
     .stTabs [data-baseweb="tab"] {
-        color: #e2e8f0;
-        border-radius: 6px;
+        color: #64748b;
+        border-radius: 8px;
         margin: 0 0.25rem;
+        padding: 0.75rem 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    .stTabs [data-baseweb="tab"]:hover {
+        color: #3b82f6;
+        background: #f1f5f9;
     }
     .stTabs [data-baseweb="tab"][aria-selected="true"] {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: #3b82f6;
         color: white;
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+    .stDataFrame {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    .settings-panel {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        padding: 2rem;
+        margin: 1.5rem 0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    }
+    .file-upload {
+        border: 2px dashed #cbd5e1;
+        border-radius: 8px;
+        padding: 2rem;
+        text-align: center;
+        background: #f8fafc;
+        transition: all 0.3s ease;
+    }
+    .file-upload:hover {
+        border-color: #3b82f6;
+        background: #eff6ff;
     }
     </style>
     """,
@@ -309,7 +443,10 @@ with col2:
     )
 
 # EINZELNE TABS STATT SIDEBAR
-tab1, tab2, tab3, tab4 = st.tabs(["🏠 Live Center", "⚡ Quick Input", "🎯 Entscheidungen", "📊 Analyse"])
+tab1, tab2, tab3, tab4, tab5, tab6, tab7 = st.tabs([
+    "🏠 Dashboard", "⚡ Quick Input", "🎯 Entscheidungen", "📊 Analyse",
+    "🚨 Frühwarnsystem", "⚙️ Einstellungen", "🗑️ Run Management"
+])
 
 # TAB 1: LIVE CENTER - IMMER SICHTBAR
 with tab1:
@@ -473,71 +610,173 @@ with tab3:
 
     st.markdown(f"### 📊 {phase} (Periode {current_period})")
 
-    # DREI OPTIONEN - KOMPAKT
+    # AUSFÜHRLICHE EMPFEHLUNGEN MIT BEGRÜNDUNG
+    st.markdown("### 📋 Detaillierte Handlungsempfehlungen")
+
+    # Berechne erwartete Auswirkungen
+    price_diff = competitor_price - 559  # Referenzpreis
+    market_pressure = "hoch" if price_diff > 20 else "mittel" if price_diff > 0 else "niedrig"
+
+    # DREI OPTIONEN - AUSFÜHRLICH
     col1, col2, col3 = st.columns(3)
 
     with col1:
         st.markdown(
             """
             <div class="decision-card conservative">
-            <h4>🟢 SICHER</h4>
+            <h4>🟢 SICHER - Risikominimierung</h4>
             """,
             unsafe_allow_html=True
         )
 
         if current_period <= 2:
-            cons_price, cons_ads, cons_devs = 569, 100000, 5
+            cons_price, cons_ads, cons_devs, cons_sales = 569, 100000, 5, 4
+            cons_strategy = "Vertrauen aufbauen, stabile Basis schaffen"
+            cons_risks = "Langsames Wachstum, verpasste Marktchancen"
+            cons_benefits = "Sicherer Start, geringe Verluste, BSC-Grundlage"
         elif current_period <= 5:
-            cons_price, cons_ads, cons_devs = 559, 150000, 6
+            cons_price, cons_ads, cons_devs, cons_sales = 559, 150000, 6, 6
+            cons_strategy = "Solide Marktposition halten, kontrolliert wachsen"
+            cons_risks = "Konkurrenz könnte überholen"
+            cons_benefits = "Stabile Margen, planbare Entwicklung"
         else:
-            cons_price, cons_ads, cons_devs = 579, 200000, 7
+            cons_price, cons_ads, cons_devs, cons_sales = 579, 200000, 7, 7
+            cons_strategy = "BSC absichern, keine Fehler in Endphase"
+            cons_risks = "Zu defensiv, Siegchance sinkt"
+            cons_benefits = "Sicherer BSC, minimale Verluste"
 
-        st.write(f"Preis: {cons_price}€")
-        st.write(f"Werbung: {cons_ads:,}€")
-        st.write(f"Entwickler: {cons_devs}")
+        st.markdown(f"""
+        **💰 Preis:** {cons_price}€
+        **📢 Werbung:** {cons_ads:,}€
+        **👨‍💼 Entwickler:** {cons_devs}
+        **👨‍💼 Vertrieb:** {cons_sales}
+
+        **🎯 Strategie:** {cons_strategy}
+
+        **✅ Vorteile:** {cons_benefits}
+
+        **⚠️ Risiken:** {cons_risks}
+        """)
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col2:
         st.markdown(
             """
             <div class="decision-card balanced">
-            <h4>🟡 BALANCIERT</h4>
+            <h4>🟡 BALANCIERT - Optimale Balance</h4>
             """,
             unsafe_allow_html=True
         )
 
         if current_period <= 2:
-            bal_price, bal_ads, bal_devs = 559, 120000, 5
+            bal_price, bal_ads, bal_devs, bal_sales = 559, 120000, 5, 5
+            bal_strategy = "Ausgewogene Entwicklung, Marktchancen nutzen"
+            bal_risks = "Mögliche Überinvestition bei Marktschwäche"
+            bal_benefits = "Gute Marktposition, BSC-Aufbau, flexible Anpassung"
         elif current_period <= 5:
-            bal_price, bal_ads, bal_devs = 549, 170000, 6
+            bal_price, bal_ads, bal_devs, bal_sales = 549, 170000, 6, 6
+            bal_strategy = "Aktives Wachstum mit Risikokontrolle"
+            bal_risks = "Cashflow-Engpässe bei Fehleinschätzungen"
+            bal_benefits = "Starke Marktposition, Innovation, Wettbewerbsfähigkeit"
         else:
-            bal_price, bal_ads, bal_devs = 569, 220000, 7
+            bal_price, bal_ads, bal_devs, bal_sales = 569, 220000, 7, 7
+            bal_strategy = "BSC-Maximierung mit Gewinnorientierung"
+            bal_risks = "Zu hohe Investitionen bei BSC-Fokus"
+            bal_benefits = "Hohe Siegchance, optimale BSC-Gewinn-Balance"
 
-        st.write(f"Preis: {bal_price}€")
-        st.write(f"Werbung: {bal_ads:,}€")
-        st.write(f"Entwickler: {bal_devs}")
+        st.markdown(f"""
+        **💰 Preis:** {bal_price}€
+        **📢 Werbung:** {bal_ads:,}€
+        **👨‍💼 Entwickler:** {bal_devs}
+        **👨‍💼 Vertrieb:** {bal_sales}
+
+        **🎯 Strategie:** {bal_strategy}
+
+        **✅ Vorteile:** {bal_benefits}
+
+        **⚠️ Risiken:** {bal_risks}
+        """)
         st.markdown("</div>", unsafe_allow_html=True)
 
     with col3:
         st.markdown(
             """
             <div class="decision-card aggressive">
-            <h4>🔴 AGGRESSIV</h4>
+            <h4>🔴 AGGRESSIV - Volles Risiko</h4>
             """,
             unsafe_allow_html=True
         )
 
         if current_period <= 2:
-            agg_price, agg_ads, agg_devs = 549, 140000, 6
+            agg_price, agg_ads, agg_devs, agg_sales = 549, 140000, 6, 6
+            agg_strategy = "Schneller Markteintritt, Dominanz aufbauen"
+            agg_risks = "Hohe Verluste bei Misserfolg, Cashflow-Krise"
+            agg_benefits = "Marktführerschaft möglich, starker BSC-Boost"
         elif current_period <= 5:
-            agg_price, agg_ads, agg_devs = 539, 190000, 7
+            agg_price, agg_ads, agg_devs, agg_sales = 539, 190000, 7, 7
+            agg_strategy = "Maximale Marktpenetration, Innovationsführerschaft"
+            agg_risks = "Existenzbedrohende Verluste, Arbeitsplatzabbau"
+            agg_benefits = "Höchste Siegchance, Marktdominanz, BSC-Maximum"
         else:
-            agg_price, agg_ads, agg_devs = 559, 240000, 8
+            agg_price, agg_ads, agg_devs, agg_sales = 559, 240000, 8, 8
+            agg_strategy = "Alles oder nichts - maximale BSC-Optimierung"
+            agg_risks = "Totale Pleite bei Fehlentscheidungen"
+            agg_benefits = "Höchstmögliche Siegchance, perfekte BSC"
 
-        st.write(f"Preis: {agg_price}€")
-        st.write(f"Werbung: {agg_ads:,}€")
-        st.write(f"Entwickler: {agg_devs}")
+        st.markdown(f"""
+        **💰 Preis:** {agg_price}€
+        **📢 Werbung:** {agg_ads:,}€
+        **👨‍💼 Entwickler:** {agg_devs}
+        **👨‍💼 Vertrieb:** {agg_sales}
+
+        **🎯 Strategie:** {agg_strategy}
+
+        **✅ Vorteile:** {agg_benefits}
+
+        **⚠️ Risiken:** {agg_risks}
+        """)
         st.markdown("</div>", unsafe_allow_html=True)
+
+    # MARKTSITUATIONS-ANALYSE
+    st.markdown("### 📊 Marktsituations-Analyse")
+
+    situation_analysis = []
+
+    if market_growth > 10:
+        situation_analysis.append("📈 **Boom-Markt:** Höhere Investitionen lohnen sich, aggressivere Preise möglich")
+    elif market_growth < -5:
+        situation_analysis.append("📉 **Schwacher Markt:** Konservative Strategie, Preise anpassen, Investitionen reduzieren")
+
+    if competitor_price < 550:
+        situation_analysis.append("⚠️ **Preisdruck:** Konkurrenz ist günstig - Preisstrategie überdenken")
+    elif competitor_price > 580:
+        situation_analysis.append("💰 **Preisfreiheit:** Konkurrenz ist teuer - höhere Margen möglich")
+
+    if current_marketshare < 20:
+        situation_analysis.append("🎯 **Marktchance:** Niedriger Marktanteil - Wachstumspotenzial vorhanden")
+    elif current_marketshare > 35:
+        situation_analysis.append("👑 **Marktführer:** Hoher Marktanteil - Verteidigungsposition stärken")
+
+    if situation_analysis:
+        for analysis in situation_analysis:
+            st.info(analysis)
+    else:
+        st.success("📊 Marktsituation ist ausgewogen - alle Strategien möglich")
+
+    # BSC-ERINNERUNG
+    st.markdown("### 🏆 BSC-Erinnerung")
+    st.warning("""
+    **WICHTIG:** Jugend Gründet bewertet NICHT nur Gewinn!
+
+    **Entscheidend sind:**
+    - **Innovation** (Forschung & Entwicklung)
+    - **Bekanntheit** (Marketing & PR)
+    - **Arbeitsplätze** (Personalaufstockung)
+    - **Nachhaltigkeit** (strategische Entscheidungen)
+    - **Gesellschaftliche Bedeutung** (strategische Ausrichtung)
+
+    Hoher Gewinn ohne BSC = **KEIN SIEG!**
+    """)
 
 # TAB 4: ANALYSE - VEREINFACHT
 with tab4:
@@ -587,5 +826,323 @@ with tab4:
 
             # Daten-Tabelle
             st.dataframe(periods_df, use_container_width=True, hide_index=True)
+
+# TAB 5: FRÜHWARNSYSTEM
+with tab5:
+    st.subheader("🚨 FRÜHWARNSYSTEM")
+    st.caption("Risiken erkennen und vermeiden - bevor es zu spät ist")
+
+    if runs_df.empty:
+        st.warning("Lege zuerst einen Run an.")
+    else:
+        run_ids = runs_df["id"].tolist()
+        run_id = st.selectbox(
+            "Run analysieren",
+            run_ids,
+            format_func=lambda value: format_run_label(runs_df, value),
+            key="warning_run"
+        )
+
+        periods_df = query_df(
+            "SELECT * FROM periods WHERE run_id = ? ORDER BY period DESC LIMIT 1",
+            (run_id,),
+        )
+
+        if periods_df.empty:
+            st.info("Noch keine Periodendaten vorhanden.")
+        else:
+            latest = periods_df.iloc[0]
+            current_period = runs_df.loc[runs_df["id"] == run_id, "current_period"].iloc[0] if "current_period" in runs_df.columns else 1
+
+            st.markdown("### 📊 Aktuelle Situation")
+            col1, col2, col3, col4 = st.columns(4)
+            col1.metric("Periode", current_period)
+            col2.metric("BSC", f"{latest['bsc']:.1f}")
+            col3.metric("Marktanteil", f"{latest['marketshare']:.1f}%")
+            col4.metric("Bekanntheit", f"{latest['awareness']:.1f}")
+
+            # RISIKOANALYSE
+            st.markdown("### ⚠️ KRITISCHE RISIKEN")
+
+            risks = []
+
+            # Überinvestitionsrisiko
+            total_investment = latest['ads'] + latest['process'] + (latest['devs'] + latest['sales']) * 50000
+            if total_investment > latest['profit'] * 2 and latest['profit'] > 0:
+                risk_level = "🔴 HOCH" if total_investment > latest['profit'] * 3 else "🟡 MITTEL"
+                risks.append({
+                    "type": "Überinvestition",
+                    "level": risk_level,
+                    "description": f"Investitionen ({total_investment:,}€) übersteigen Gewinn ({latest['profit']:,.0f}€) deutlich",
+                    "consequence": "Cashflow-Probleme, BSC-Verlust durch Arbeitsplatzabbau",
+                    "recommendation": "Investitionen um 20-30% reduzieren, Fokus auf Effizienz"
+                })
+
+            # Marktverlust-Risiko
+            if latest['marketshare'] < 15 and current_period > 3:
+                risks.append({
+                    "type": "Marktverlust",
+                    "level": "🔴 HOCH",
+                    "description": f"Marktanteil nur {latest['marketshare']:.1f}% - zu niedrig für Periode {current_period}",
+                    "consequence": "Konkurrenz übernimmt Markt, kein Wachstum möglich",
+                    "recommendation": "Preis aggressiver senken, Werbung massiv erhöhen (+50k)"
+                })
+
+            # BSC-Verlust-Risiko
+            bsc_risk_score = 0
+            if latest['innovation'] < 200 and current_period > 4:
+                bsc_risk_score += 2
+            if latest['awareness'] < 150 and current_period > 5:
+                bsc_risk_score += 2
+            if latest['devs'] < 6 and current_period > 6:
+                bsc_risk_score += 1
+
+            if bsc_risk_score >= 3:
+                risks.append({
+                    "type": "BSC-Verlust",
+                    "level": "🔴 KRITISCH",
+                    "description": f"BSC-Komponenten zu niedrig für Endgame (Score: {bsc_risk_score}/5)",
+                    "consequence": "Sieg unmöglich, auch bei hohem Gewinn",
+                    "recommendation": "Sofort Innovation >200, Bekanntheit >150, Mitarbeiter +1"
+                })
+
+            # Planungsfehler-Risiko
+            if current_period > 1:
+                prev_periods = query_df(
+                    "SELECT * FROM periods WHERE run_id = ? ORDER BY period DESC LIMIT 2",
+                    (run_id,),
+                )
+                if len(prev_periods) >= 2:
+                    prev_qty = prev_periods.iloc[1]['qty1']
+                    curr_qty = latest['qty1']
+                    qty_change = abs(curr_qty - prev_qty) / prev_qty if prev_qty > 0 else 0
+
+                    if qty_change > 0.5:  # >50% Änderung
+                        risks.append({
+                            "type": "Planungsfehler",
+                            "level": "🟡 MITTEL",
+                            "description": f"Bestellmenge um {qty_change:.0%} geändert - zu große Sprünge",
+                            "consequence": "Lagerprobleme, Cashflow-Unsicherheit",
+                            "recommendation": "Mengenänderungen auf max. 30% pro Periode begrenzen"
+                        })
+
+            # Anzeige der Risiken
+            if risks:
+                for risk in risks:
+                    st.error(f"""
+                    **{risk['level']} - {risk['type']}**
+
+                    {risk['description']}
+
+                    **Folge:** {risk['consequence']}
+
+                    **Empfehlung:** {risk['recommendation']}
+                    """)
+            else:
+                st.success("✅ Keine kritischen Risiken erkannt - gute Arbeit!")
+
+            # PRÄVENTIVE HINWEISE
+            st.markdown("### 💡 Präventive Hinweise")
+
+            tips = []
+
+            if current_period <= 3 and latest['ads'] < 120000:
+                tips.append("Frühphase: Werbung auf mind. 120k€ erhöhen für Markenaufbau")
+
+            if current_period >= 6 and latest['devs'] < 7:
+                tips.append("Endgame: Mindestens 7 Entwickler für BSC-Maximierung")
+
+            if latest['innovation'] < 250 and current_period >= 7:
+                tips.append("Innovation sollte >250 sein für Top-BSC-Platzierungen")
+
+            if latest['marketshare'] < 25 and current_period >= 5:
+                tips.append("Marktanteil sollte >25% sein für Wettbewerbsfähigkeit")
+
+            for tip in tips:
+                st.info(f"• {tip}")
+
+# TAB 6: EINSTELLUNGEN
+with tab6:
+    st.subheader("⚙️ EINSTELLUNGEN")
+    st.caption("Daten verwalten und zwischen Geräten synchronisieren")
+
+    st.markdown('<div class="settings-panel">', unsafe_allow_html=True)
+    st.subheader("💾 Daten-Export")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.download_button(
+            "📄 JSON Export (vollständig)",
+            data=build_backup_json(),
+            file_name=f"jugend_gruender_backup_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+            mime="application/json",
+            use_container_width=True,
+            help="Enthält alle Runs, Perioden und strategischen Entscheidungen"
+        )
+
+    with col2:
+        if not runs_df.empty:
+            # CSV Export für aktuellen Run
+            run_ids = runs_df["id"].tolist()
+            export_run_id = st.selectbox(
+                "Run für CSV-Export",
+                run_ids,
+                format_func=lambda value: format_run_label(runs_df, value),
+                key="export_run"
+            )
+
+            periods_df = query_df("SELECT * FROM periods WHERE run_id = ? ORDER BY period", (export_run_id,))
+            if not periods_df.empty:
+                csv_data = periods_df.to_csv(index=False)
+                st.download_button(
+                    "📊 CSV Export (Run-Daten)",
+                    data=csv_data,
+                    file_name=f"run_{export_run_id}_perioden.csv",
+                    mime="text/csv",
+                    use_container_width=True,
+                    help="Excel-kompatible Tabelle mit Periodendaten"
+                )
+
+    st.markdown("---")
+    st.subheader("📤 Daten-Import")
+
+    uploaded_file = st.file_uploader(
+        "JSON-Backup hochladen",
+        type=["json"],
+        help="Lade eine zuvor exportierte JSON-Datei hoch, um Daten wiederherzustellen"
+    )
+
+    if uploaded_file is not None:
+        try:
+            import_data = json.loads(uploaded_file.getvalue().decode('utf-8'))
+
+            if st.button("🔄 Daten importieren", type="primary"):
+                # Import Runs
+                if "runs" in import_data:
+                    for run in import_data["runs"]:
+                        try:
+                            execute(
+                                "INSERT OR REPLACE INTO runs(id, name, created, end_bsc, end_profit, place, current_period) VALUES(?, ?, ?, ?, ?, ?, ?)",
+                                (run["id"], run["name"], run["created"], run.get("end_bsc", 0), run.get("end_profit", 0), run.get("place", 0), run.get("current_period", 1))
+                            )
+                        except Exception as e:
+                            st.warning(f"Run {run.get('name', 'Unknown')} konnte nicht importiert werden: {str(e)}")
+
+                # Import Periods
+                if "periods" in import_data:
+                    for period in import_data["periods"]:
+                        try:
+                            execute(
+                                """INSERT OR REPLACE INTO periods(
+                                    id, run_id, period, price1, price2, qty1, qty2, ads, devs, sales,
+                                    process, profit, bsc, marketshare, innovation, awareness
+                                ) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                                (
+                                    period["id"], period["run_id"], period["period"],
+                                    period.get("price1"), period.get("price2"), period.get("qty1"), period.get("qty2"),
+                                    period.get("ads"), period.get("devs"), period.get("sales"),
+                                    period.get("process"), period.get("profit"), period.get("bsc"),
+                                    period.get("marketshare"), period.get("innovation"), period.get("awareness")
+                                )
+                            )
+                        except Exception as e:
+                            st.warning(f"Periode {period.get('period', 'Unknown')} konnte nicht importiert werden: {str(e)}")
+
+                st.success("✅ Daten erfolgreich importiert!")
+                st.rerun()
+
+        except Exception as e:
+            st.error(f"❌ Fehler beim Import: {str(e)}")
+
+    st.markdown("---")
+    st.subheader("🗂️ Datenbank-Info")
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        total_runs = len(runs_df)
+        st.metric("Gesamt Runs", total_runs)
+
+    with col2:
+        total_periods = len(query_df("SELECT * FROM periods"))
+        st.metric("Gesamt Perioden", total_periods)
+
+    with col3:
+        db_size = DB_PATH.stat().st_size if DB_PATH.exists() else 0
+        st.metric("DB-Größe", f"{db_size / 1024:.1f} KB")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+# TAB 7: RUN MANAGEMENT
+with tab7:
+    st.subheader("🗑️ RUN MANAGEMENT")
+    st.caption("Runs löschen und verwalten")
+
+    if runs_df.empty:
+        st.info("Keine Runs zum Verwalten vorhanden.")
+    else:
+        st.markdown('<div class="settings-panel">', unsafe_allow_html=True)
+
+        # Run Übersicht
+        st.subheader("📋 Run Übersicht")
+
+        # Erweitere runs_df um Perioden-Info
+        runs_with_periods = runs_df.copy()
+        runs_with_periods["perioden"] = runs_with_periods["id"].apply(
+            lambda run_id: len(query_df("SELECT * FROM periods WHERE run_id = ?", (run_id,)))
+        )
+
+        display_df = runs_with_periods[["name", "created", "perioden", "end_bsc", "end_profit", "place"]].copy()
+        display_df.columns = ["Name", "Erstellt", "Perioden", "End-BSC", "End-Gewinn", "Platz"]
+
+        st.dataframe(display_df, use_container_width=True, hide_index=True)
+
+        st.markdown("---")
+        st.subheader("🗑️ Run löschen")
+
+        st.warning("⚠️ **Vorsicht:** Gelöschte Runs können nicht wiederhergestellt werden!")
+
+        run_ids = runs_df["id"].tolist()
+        run_to_delete = st.selectbox(
+            "Zu löschenden Run wählen",
+            run_ids,
+            format_func=lambda value: format_run_label(runs_df, value),
+            key="delete_run"
+        )
+
+        # Bestätigung
+        confirm_text = st.text_input(
+            "Bestätigung eingeben",
+            placeholder=f"Tippe '{runs_df.loc[runs_df['id'] == run_to_delete, 'name'].iloc[0]}' ein",
+            help="Gib den Namen des Runs ein, um die Löschung zu bestätigen"
+        )
+
+        run_name = runs_df.loc[runs_df["id"] == run_to_delete, "name"].iloc[0]
+
+        if st.button("🗑️ Run endgültig löschen", type="secondary", disabled=confirm_text != run_name):
+            if confirm_text == run_name:
+                # Lösche alle abhängigen Daten
+                execute("DELETE FROM strategic_decisions WHERE run_id = ?", (run_to_delete,))
+                execute("DELETE FROM periods WHERE run_id = ?", (run_to_delete,))
+                execute("DELETE FROM runs WHERE id = ?", (run_to_delete,))
+
+                st.success(f"✅ Run '{run_name}' wurde gelöscht!")
+                st.rerun()
+            else:
+                st.error("❌ Bestätigung fehlerhaft!")
+
+        st.markdown("---")
+        st.subheader("🧹 Datenbank bereinigen")
+
+        if st.button("🧽 Leere Einträge entfernen", type="secondary"):
+            # Entferne Runs ohne Perioden
+            empty_runs = query_df("SELECT id FROM runs WHERE id NOT IN (SELECT DISTINCT run_id FROM periods)")
+            if not empty_runs.empty:
+                for run_id in empty_runs["id"]:
+                    execute("DELETE FROM runs WHERE id = ?", (run_id,))
+                st.success(f"✅ {len(empty_runs)} leere Runs entfernt!")
+            else:
+                st.info("Keine leeren Runs gefunden.")
+
+        st.markdown("</div>", unsafe_allow_html=True)
 
 
