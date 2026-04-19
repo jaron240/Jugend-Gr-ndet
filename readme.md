@@ -12,6 +12,7 @@ Ein umfassendes, visuell beeindruckendes Tool für Jugend Gründet Teams:
 - **🚨 Frühwarnsystem** - Risikoanalyse & präventive Hinweise
 - **⚙️ Einstellungen** - Daten-Export/Import für Cross-Device-Sync
 - **🗑️ Run Management** - Runs löschen & Datenbank verwalten
+- **👥 Team-Kollaboration** - Team-Codes für gemeinsame Datennutzung
 
 ## Wichtige Erkenntnisse
 
