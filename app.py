@@ -189,17 +189,20 @@ if 'team_code' not in st.session_state:
 if 'private_mode' not in st.session_state:
     st.session_state.private_mode = True  # Start im Privatmodus
 
-# AUTOMATISCHE GERÄTE-BASIERTE TRENNUNG nur wenn nicht im expliziten Privatmodus
+# AUTOMATISCHE GERÄTE-BASIERTE TRENNUNG für echte Privatsphäre
 if 'device_id' not in st.session_state:
     # Erstelle eine eindeutige Device-ID basierend auf Session-Info
     import hashlib
     import time
     device_seed = f"{time.time()}_{secrets.token_hex(8)}"
     st.session_state.device_id = hashlib.md5(device_seed.encode()).hexdigest()[:8].upper()
-    st.session_state.device_id = f"DEVICE-{st.session_state.device_id}"
+    st.session_state.device_id = f"PRIVATE-{st.session_state.device_id}"
 
-# Logik für automatische Trennung nur wenn nicht im expliziten Privatmodus
-if st.session_state.team_code is None and not st.session_state.private_mode:
+# Im Privatmodus immer die Device-ID als Team-Code verwenden für echte Trennung
+if st.session_state.private_mode:
+    st.session_state.team_code = st.session_state.device_id
+elif st.session_state.team_code is None:
+    # Wenn kein Team-Code gesetzt und nicht im Privatmodus, Device-ID verwenden
     st.session_state.team_code = st.session_state.device_id
 
 st.set_page_config(
