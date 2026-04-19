@@ -173,7 +173,7 @@ def save_period(
 init_db()
 
 st.set_page_config(
-    page_title="Jugend Gruender - Professional Tool",
+    page_title="Planspiel Tracker JG",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -492,23 +492,17 @@ st.markdown(
 
 runs_df = query_df("SELECT * FROM runs ORDER BY id DESC")
 
-# HEADER MIT BACKUP
-col1, col2 = st.columns([3, 1])
-with col1:
-    st.markdown(
-        """
-        <div class="main-header">
-            <h1>🎯 JUGEND GRÜNDER</h1>
-            <p>Live-Entscheidungshilfe für Jugend Gründet Teams</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+# KOMPAKTER HEADER
+st.title("🎯 Planspiel Tracker JG")
+st.caption("Live-Entscheidungshilfe für Jugend Gründet Teams")
+
+# Backup Button in der Ecke
+col1, col2, col3 = st.columns([4, 1, 1])
 with col2:
     st.download_button(
         "💾 Backup",
         data=build_backup_json(),
-        file_name="jugend_gruender_backup.json",
+        file_name="planspiel_tracker_jg_backup.json",
         mime="application/json",
         use_container_width=True,
     )
@@ -549,18 +543,140 @@ with tab1:
             avg_bsc = runs_df["end_bsc"].mean() if not runs_df.empty else 0
             st.metric("Ø BSC", f"{avg_bsc:.1f}")
 
+        # ERWEITERTE VISUALISIERUNGEN
+        st.markdown("### 📈 Performance Übersicht")
+
         # BSC vs Gewinn Scatterplot
-        scatter = px.scatter(
-            runs_df,
-            x="end_profit",
-            y="end_bsc",
-            text="name",
-            title="BSC vs. Gewinn Übersicht",
-            color="end_bsc",
-            color_continuous_scale="RdYlGn",
-        )
-        scatter.update_traces(textposition="top center")
-        st.plotly_chart(scatter, use_container_width=True)
+        col1, col2 = st.columns(2)
+        with col1:
+            scatter = px.scatter(
+                runs_df,
+                x="end_profit",
+                y="end_bsc",
+                text="name",
+                title="BSC vs. Gewinn",
+                color="end_bsc",
+                color_continuous_scale="RdYlGn",
+                size="end_bsc",
+            )
+            scatter.update_traces(textposition="top center")
+            st.plotly_chart(scatter, use_container_width=True)
+
+        with col2:
+            # BSC-Verteilung
+            bsc_hist = px.histogram(
+                runs_df,
+                x="end_bsc",
+                title="BSC-Verteilung aller Runs",
+                color_discrete_sequence=["#60a5fa"],
+                nbins=10
+            )
+            bsc_hist.update_layout(showlegend=False)
+            st.plotly_chart(bsc_hist, use_container_width=True)
+
+        # Zeitliche Entwicklung
+        st.markdown("### 📊 Entwicklung über Zeit")
+
+        # Sammle alle Perioden-Daten für Zeitreihe
+        all_periods_data = []
+        for run_id in runs_df["id"]:
+            periods = query_df("SELECT period, bsc, profit, marketshare FROM periods WHERE run_id = ? ORDER BY period", (run_id,))
+            if not periods.empty:
+                for _, period in periods.iterrows():
+                    all_periods_data.append({
+                        "Run": runs_df.loc[runs_df["id"] == run_id, "name"].iloc[0],
+                        "Periode": period["period"],
+                        "BSC": period["bsc"],
+                        "Gewinn": period["profit"],
+                        "Marktanteil": period["marketshare"]
+                    })
+
+        if all_periods_data:
+            timeline_df = pd.DataFrame(all_periods_data)
+
+            # BSC Timeline
+            bsc_timeline = px.line(
+                timeline_df,
+                x="Periode",
+                y="BSC",
+                color="Run",
+                title="BSC-Entwicklung aller Runs",
+                markers=True
+            )
+            st.plotly_chart(bsc_timeline, use_container_width=True)
+
+            # Gewinn Timeline
+            profit_timeline = px.line(
+                timeline_df,
+                x="Periode",
+                y="Gewinn",
+                color="Run",
+                title="Gewinn-Entwicklung aller Runs",
+                markers=True
+            )
+            st.plotly_chart(profit_timeline, use_container_width=True)
+
+        # Top Performer Charts
+        st.markdown("### 🏆 Top Performer")
+
+        col1, col2 = st.columns(2)
+        with col1:
+            # Top BSC Runs
+            top_bsc = runs_df.nlargest(5, "end_bsc")
+            bsc_bar = px.bar(
+                top_bsc,
+                x="name",
+                y="end_bsc",
+                title="Top 5 BSC-Scores",
+                color="end_bsc",
+                color_continuous_scale="Greens"
+            )
+            bsc_bar.update_layout(showlegend=False)
+            st.plotly_chart(bsc_bar, use_container_width=True)
+
+        with col2:
+            # Top Profit Runs
+            top_profit = runs_df.nlargest(5, "end_profit")
+            profit_bar = px.bar(
+                top_profit,
+                x="name",
+                y="end_profit",
+                title="Top 5 Gewinne",
+                color="end_profit",
+                color_continuous_scale="Blues"
+            )
+            profit_bar.update_layout(showlegend=False)
+            st.plotly_chart(profit_bar, use_container_width=True)
+
+        # Korrelationsanalyse
+        st.markdown("### 🔍 Korrelationsanalyse")
+
+        if len(runs_df) > 1:
+            corr_matrix = runs_df[["end_bsc", "end_profit", "place"]].corr()
+
+            # Korrelations-Heatmap
+            heatmap = px.imshow(
+                corr_matrix,
+                text_auto=True,
+                title="Korrelationsmatrix",
+                color_continuous_scale="RdBu_r",
+                aspect="auto"
+            )
+            heatmap.update_layout(
+                xaxis_title="",
+                yaxis_title=""
+            )
+            st.plotly_chart(heatmap, use_container_width=True)
+
+            # Scatterplot Matrix
+            scatter_matrix = px.scatter_matrix(
+                runs_df,
+                dimensions=["end_bsc", "end_profit", "place"],
+                title="Scatterplot Matrix",
+                color="end_bsc",
+                color_continuous_scale="Viridis"
+            )
+            st.plotly_chart(scatter_matrix, use_container_width=True)
 
     else:
         st.info("👋 Willkommen! Erstelle deinen ersten Run im 'Quick Input' Tab.")
@@ -879,24 +995,165 @@ with tab4:
             col3.metric("Max Gewinn", format_currency(float(periods_df["profit"].max())))
             col4.metric("Ø Marktanteil", f"{periods_df['marketshare'].mean():.1f}%")
 
-            # Charts
-            chart_col1, chart_col2 = st.columns(2)
-            with chart_col1:
-                profit_chart = px.line(
-                    periods_df, x="period", y="profit", markers=True,
-                    title="Gewinn-Verlauf", color_discrete_sequence=["#10b981"]
-                )
-                st.plotly_chart(profit_chart, use_container_width=True)
+            # ERWEITERTE VISUALISIERUNGEN
+            st.markdown("### 📈 Detaillierte Analyse")
 
-            with chart_col2:
-                bsc_chart = px.line(
-                    periods_df, x="period", y="bsc", markers=True,
-                    title="BSC-Verlauf", color_discrete_sequence=["#f59e0b"]
+            # Haupt-KPIs Timeline
+            col1, col2 = st.columns(2)
+            with col1:
+                # Multi-Line Chart für alle wichtigen Metriken
+                multi_line = px.line(
+                    periods_df.melt(id_vars=['period'],
+                                  value_vars=['profit', 'bsc', 'marketshare', 'innovation', 'awareness'],
+                                  var_name='Metrik', value_name='Wert'),
+                    x='period', y='Wert', color='Metrik',
+                    title='Alle KPIs im Zeitverlauf',
+                    markers=True
                 )
-                st.plotly_chart(bsc_chart, use_container_width=True)
+                multi_line.update_layout(
+                    yaxis_title='Wert',
+                    legend_title='Metrik'
+                )
+                st.plotly_chart(multi_line, use_container_width=True)
 
-            # Daten-Tabelle
-            st.dataframe(periods_df, use_container_width=True, hide_index=True)
+            with col2:
+                # Korrelationsmatrix für diesen Run
+                corr_vars = ['profit', 'bsc', 'marketshare', 'innovation', 'awareness', 'ads', 'devs', 'sales']
+                corr_data = periods_df[corr_vars].corr()
+
+                heatmap = px.imshow(
+                    corr_data,
+                    text_auto='.2f',
+                    title='Korrelationsmatrix',
+                    color_continuous_scale='RdBu_r',
+                    aspect='auto'
+                )
+                heatmap.update_layout(
+                    xaxis_title='',
+                    yaxis_title=''
+                )
+                st.plotly_chart(heatmap, use_container_width=True)
+
+            # Performance Breakdown
+            st.markdown("### 📊 Performance Breakdown")
+
+            perf_col1, perf_col2, perf_col3 = st.columns(3)
+
+            with perf_col1:
+                # BSC-Komponenten als Radar Chart
+                if len(periods_df) >= 3:
+                    latest_three = periods_df.tail(3)
+                    radar_data = pd.DataFrame({
+                        'Periode': [f'P{p}' for p in latest_three['period']],
+                        'Innovation': latest_three['innovation'],
+                        'Bekanntheit': latest_three['awareness'],
+                        'Marktanteil': latest_three['marketshare']
+                    })
+
+                    radar_fig = px.line_polar(
+                        radar_data.melt(id_vars=['Periode'], var_name='Komponente', value_name='Wert'),
+                        r='Wert', theta='Komponente', color='Periode',
+                        line_close=True, title='BSC-Komponenten Entwicklung'
+                    )
+                    st.plotly_chart(radar_fig, use_container_width=True)
+                else:
+                    st.info("Mindestens 3 Perioden für Radar-Chart benötigt")
+
+            with perf_col2:
+                # Investitions-Effizienz
+                periods_df['invest_total'] = periods_df['ads'] + periods_df['process'] + (periods_df['devs'] + periods_df['sales']) * 50000
+                periods_df['roi'] = periods_df['profit'] / periods_df['invest_total'].replace(0, 1) * 100
+
+                roi_chart = px.bar(
+                    periods_df, x='period', y='roi',
+                    title='ROI pro Periode (%)',
+                    color='roi',
+                    color_continuous_scale='RdYlGn'
+                )
+                roi_chart.update_layout(showlegend=False)
+                st.plotly_chart(roi_chart, use_container_width=True)
+
+            with perf_col3:
+                # Wachstumsraten
+                periods_df['profit_growth'] = periods_df['profit'].pct_change() * 100
+                periods_df['bsc_growth'] = periods_df['bsc'].pct_change() * 100
+
+                growth_data = periods_df[['period', 'profit_growth', 'bsc_growth']].melt(
+                    id_vars=['period'], var_name='Metrik', value_name='Wachstum'
+                )
+
+                growth_chart = px.bar(
+                    growth_data, x='period', y='Wachstum', color='Metrik',
+                    title='Wachstumsraten (%)',
+                    barmode='group',
+                    color_discrete_map={'profit_growth': '#10b981', 'bsc_growth': '#f59e0b'}
+                )
+                st.plotly_chart(growth_chart, use_container_width=True)
+
+            # Strategische Analyse
+            st.markdown("### 🎯 Strategische Analyse")
+
+            strat_col1, strat_col2 = st.columns(2)
+
+            with strat_col1:
+                # Preisstrategie Analyse
+                periods_df['price_trend'] = periods_df['price1'].pct_change() * 100
+
+                price_analysis = px.scatter(
+                    periods_df, x='price1', y='marketshare', size='ads',
+                    color='period', title='Preis vs. Marktanteil',
+                    color_continuous_scale='Viridis'
+                )
+                price_analysis.update_layout(
+                    xaxis_title='Preis (€)',
+                    yaxis_title='Marktanteil (%)'
+                )
+                st.plotly_chart(price_analysis, use_container_width=True)
+
+            with strat_col2:
+                # Werbeeffizienz
+                periods_df['ads_efficiency'] = periods_df['awareness'] / periods_df['ads'].replace(0, 1) * 1000
+
+                ads_eff = px.line(
+                    periods_df, x='period', y='ads_efficiency', markers=True,
+                    title='Werbeeffizienz (Bekanntheit/€)',
+                    color_discrete_sequence=['#8b5cf6']
+                )
+                st.plotly_chart(ads_eff, use_container_width=True)
+
+            # Daten-Tabelle mit erweiterten Metriken
+            st.markdown("### 📋 Detaillierte Daten")
+
+            # Berechne zusätzliche Metriken
+            analysis_df = periods_df.copy()
+            analysis_df['invest_total'] = analysis_df['ads'] + analysis_df['process'] + (analysis_df['devs'] + analysis_df['sales']) * 50000
+            analysis_df['margin'] = (analysis_df['profit'] / analysis_df['invest_total'].replace(0, 1)) * 100
+            analysis_df['efficiency_score'] = (analysis_df['bsc'] + analysis_df['marketshare'] + analysis_df['innovation']/10 + analysis_df['awareness']/10) / 4
+
+            display_cols = ['period', 'price1', 'qty1', 'ads', 'devs', 'sales', 'profit', 'bsc',
+                          'marketshare', 'innovation', 'awareness', 'invest_total', 'margin', 'efficiency_score']
+
+            st.dataframe(
+                analysis_df[display_cols].round(2),
+                use_container_width=True,
+                hide_index=True,
+                column_config={
+                    'period': 'Periode',
+                    'price1': 'Preis 1 (€)',
+                    'qty1': 'Menge 1',
+                    'ads': 'Werbung (€)',
+                    'devs': 'Entwickler',
+                    'sales': 'Vertrieb',
+                    'profit': 'Gewinn (€)',
+                    'bsc': 'BSC',
+                    'marketshare': 'Marktanteil (%)',
+                    'innovation': 'Innovation',
+                    'awareness': 'Bekanntheit',
+                    'invest_total': 'Gesamt-Invest (€)',
+                    'margin': 'Marge (%)',
+                    'efficiency_score': 'Effizienz-Score'
+                }
+            )
 
 # TAB 5: FRÜHWARNSYSTEM
 with tab5:
