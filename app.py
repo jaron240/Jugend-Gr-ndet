@@ -1640,6 +1640,7 @@ with tab6:
         team_name_input = st.text_input("Team-Name", key="team_name_minimal")
         if st.button("➕ Team erstellen", use_container_width=True, disabled=not team_name_input.strip()):
             if team_name_input.strip():
+                # Automatische Team-Code Generierung
                 team_code = f"TEAM-{secrets.token_hex(3).upper()}"
                 existing_team = query_df("SELECT id FROM teams WHERE team_code = ?", (team_code,))
                 if not existing_team.empty:
@@ -1650,7 +1651,9 @@ with tab6:
 
                 st.session_state.team_code = team_code
                 st.session_state.private_mode = False
-                st.success(f"✅ Team erstellt: {team_code}")
+                st.success(f"✅ Team '{team_name_input.strip()}' erstellt!")
+                st.success(f"🔒 **Geheimer Team-Code:** {team_code}")
+                st.info("📤 Teile diesen Code nur mit vertrauten Teammitgliedern!")
                 st.rerun()
 
     with col3:
