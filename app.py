@@ -189,14 +189,19 @@ if 'team_code' not in st.session_state:
 if 'private_mode' not in st.session_state:
     st.session_state.private_mode = True  # Start im Privatmodus
 
-# AUTOMATISCHE GERÄTE-BASIERTE TRENNUNG für echte Privatsphäre
-if 'device_id' not in st.session_state:
-    # Erstelle eine eindeutige Device-ID basierend auf Session-Info
+# PERSISTENTE GERÄTE-BASIERTE TRENNUNG mit Cache
+@st.cache_data
+def get_persistent_device_id():
+    """Generiert eine persistente Device-ID die über Sessions hinweg erhalten bleibt"""
     import hashlib
     import time
-    device_seed = f"{time.time()}_{secrets.token_hex(8)}"
-    st.session_state.device_id = hashlib.md5(device_seed.encode()).hexdigest()[:8].upper()
-    st.session_state.device_id = f"PRIVATE-{st.session_state.device_id}"
+    # Verwende eine Kombination aus Zeit und Zufall für Eindeutigkeit
+    device_seed = f"planspiel_tracker_{time.time()}_{secrets.token_hex(16)}"
+    device_id = hashlib.sha256(device_seed.encode()).hexdigest()[:12].upper()
+    return f"PRIVATE-{device_id}"
+
+# Hole persistente Device-ID
+st.session_state.device_id = get_persistent_device_id()
 
 # Im Privatmodus immer die Device-ID als Team-Code verwenden für echte Trennung
 if st.session_state.private_mode:
