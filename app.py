@@ -28,7 +28,8 @@ def init_db() -> None:
                 created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 end_bsc REAL DEFAULT 0,
                 end_profit REAL DEFAULT 0,
-                place INTEGER DEFAULT 0
+                place INTEGER DEFAULT 0,
+                current_period INTEGER DEFAULT 1
             );
 
             CREATE TABLE IF NOT EXISTS periods(
@@ -49,6 +50,17 @@ def init_db() -> None:
                 innovation REAL,
                 awareness REAL,
                 FOREIGN KEY(run_id) REFERENCES runs(id) ON DELETE CASCADE
+            );
+
+            CREATE TABLE IF NOT EXISTS strategic_decisions(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                run_id INTEGER NOT NULL,
+                period INTEGER NOT NULL,
+                decision_type TEXT NOT NULL,
+                decision_value TEXT NOT NULL,
+                created TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY(run_id) REFERENCES runs(id) ON DELETE CASCADE,
+                UNIQUE(run_id, period, decision_type)
             );
             """
         )
@@ -226,7 +238,9 @@ with st.sidebar:
         [
             "Dashboard",
             "Neuer Run",
+            "Periode auswählen",
             "Periode eintragen",
+            "Strategieentscheidungen",
             "Analyse",
             "Empfehlungen",
             "Run Vergleich",
@@ -316,6 +330,279 @@ if menu == "Dashboard":
         )
         st.dataframe(display_runs, use_container_width=True, hide_index=True)
 
+elif menu == "Periode auswählen":
+    st.subheader("Periode für Run auswählen")
+    if runs_df.empty:
+        st.warning("Lege zuerst einen Run an.")
+    else:
+        run_ids = runs_df["id"].tolist()
+        run_id = st.selectbox(
+            "Run wählen",
+            run_ids,
+            format_func=lambda value: format_run_label(runs_df, value),
+        )
+
+        # Aktuelle Periode des Runs
+        current_period = runs_df.loc[runs_df["id"] == run_id, "current_period"].iloc[0]
+        st.info(f"Aktuelle Periode des Runs: {current_period}")
+
+        # Nächste verfügbare Periode
+        max_period_df = query_df(
+            "SELECT MAX(period) AS max_period FROM periods WHERE run_id = ?",
+            (run_id,),
+        )
+        max_completed = max_period_df.iloc[0]["max_period"]
+        next_available = 1 if pd.isna(max_completed) else int(max_completed) + 1
+
+        if next_available > 8:
+            st.success("Alle Perioden abgeschlossen!")
+        else:
+            st.markdown(f"### Nächste Periode: {next_available}")
+
+            # Perioden-Info anzeigen
+            period_info = {
+                1: "Finanzierung - Vertrauen aufbauen",
+                2: "Standort - Basis legen",
+                3: "Rechtsform - Wachstum starten",
+                4: "Büroanwendungen - Effizienz steigern",
+                5: "Markt 2 + Schlüsselperson - Expansion",
+                6: "Reparaturrecht + Patent - Reputation",
+                7: "Doktorand:in + Compliance - Personal",
+                8: "CSR + Wetterinfo - Finale"
+            }
+
+            st.info(f"**Periode {next_available}:** {period_info.get(next_available, 'Unbekannt')}")
+
+            if st.button(f"Periode {next_available} starten", type="primary"):
+                execute("UPDATE runs SET current_period = ? WHERE id = ?", (next_available, run_id))
+                st.success(f"Periode {next_available} für {format_run_label(runs_df, run_id)} gestartet!")
+                st.rerun()
+
+elif menu == "Strategieentscheidungen":
+    st.subheader("Strategische Entscheidungen")
+    if runs_df.empty:
+        st.warning("Lege zuerst einen Run an.")
+    else:
+        run_ids = runs_df["id"].tolist()
+        run_id = st.selectbox(
+            "Run wählen",
+            run_ids,
+            format_func=lambda value: format_run_label(runs_df, value),
+        )
+
+        current_period = runs_df.loc[runs_df["id"] == run_id, "current_period"].iloc[0]
+
+        if current_period == 1:
+            st.info("Periode 1: Wähle deine Finanzierung")
+            with st.form("financing_decision"):
+                financing = st.radio(
+                    "Finanzierungsoption",
+                    ["Green Climate Fund (empfohlen)", "Investor", "Bankkredit"],
+                    help="Green Climate Fund gibt BSC-Boost für Nachhaltigkeit"
+                )
+                submitted = st.form_submit_button("Finanzierung wählen")
+                if submitted:
+                    execute(
+                        "INSERT OR REPLACE INTO strategic_decisions (run_id, period, decision_type, decision_value) VALUES (?, ?, ?, ?)",
+                        (run_id, 1, "financing", financing.split(" ")[0])
+                    )
+                    st.success(f"Finanzierung '{financing}' gewählt!")
+
+        elif current_period == 2:
+            st.info("Periode 2: Wähle deinen Standort")
+            with st.form("location_decision"):
+                location = st.radio(
+                    "Standort",
+                    ["Passau (empfohlen)", "Dresden", "Freudenstadt"],
+                    help="Passau gibt BSC-Vorteile für Nachhaltigkeit"
+                )
+                submitted = st.form_submit_button("Standort wählen")
+                if submitted:
+                    execute(
+                        "INSERT OR REPLACE INTO strategic_decisions (run_id, period, decision_type, decision_value) VALUES (?, ?, ?, ?)",
+                        (run_id, 2, "location", location.split(" ")[0])
+                    )
+                    st.success(f"Standort '{location}' gewählt!")
+
+        elif current_period == 3:
+            st.info("Periode 3: Wähle deine Rechtsform")
+            with st.form("legal_form_decision"):
+                legal_form = st.radio(
+                    "Rechtsform",
+                    ["GmbH (empfohlen)", "AG", "GbR"],
+                    help="GmbH bietet beste Balance für Wachstum"
+                )
+                submitted = st.form_submit_button("Rechtsform wählen")
+                if submitted:
+                    execute(
+                        "INSERT OR REPLACE INTO strategic_decisions (run_id, period, decision_type, decision_value) VALUES (?, ?, ?, ?)",
+                        (run_id, 3, "legal_form", legal_form.split(" ")[0])
+                    )
+                    st.success(f"Rechtsform '{legal_form}' gewählt!")
+
+        elif current_period == 4:
+            st.info("Periode 4: Wähle Büroanwendungen")
+            with st.form("software_decision"):
+                software = st.radio(
+                    "Büroanwendungen",
+                    ["Cloud Computing (empfohlen)", "Open Source", "Klassische Lizenzen"],
+                    help="Cloud Computing gibt Effizienz- und BSC-Vorteile"
+                )
+                submitted = st.form_submit_button("Büroanwendungen wählen")
+                if submitted:
+                    execute(
+                        "INSERT OR REPLACE INTO strategic_decisions (run_id, period, decision_type, decision_value) VALUES (?, ?, ?, ?)",
+                        (run_id, 4, "software", "Cloud" if "Cloud" in software else "Open" if "Open" in software else "Classic")
+                    )
+                    st.success(f"Büroanwendungen '{software}' gewählt!")
+
+        elif current_period == 5:
+            st.info("Periode 5: Strategische Entscheidungen")
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.subheader("Schlüsselperson")
+                with st.form("key_person_decision"):
+                    key_person = st.radio(
+                        "Schlüsselperson",
+                        ["Elena Equitara", "Hugo Humanitas", "Fiona Finance"],
+                        help="Hugo Humanitas gibt BSC-Boost für gesellschaftliche Bedeutung"
+                    )
+                    submitted1 = st.form_submit_button("Schlüsselperson wählen")
+                    if submitted1:
+                        execute(
+                            "INSERT OR REPLACE INTO strategic_decisions (run_id, period, decision_type, decision_value) VALUES (?, ?, ?, ?)",
+                            (run_id, 5, "key_person", key_person.split(" ")[1])
+                        )
+                        st.success(f"Schlüsselperson '{key_person}' gewählt!")
+
+            with col2:
+                st.subheader("Klimakommunikation")
+                with st.form("climate_decision"):
+                    climate = st.radio(
+                        "Klimakommunikation",
+                        ["Bewusstsein herstellen (empfohlen)", "Angst schüren", "Nicht thematisieren"],
+                        help="Bewusstsein herstellen gibt BSC-Vorteile für Nachhaltigkeit"
+                    )
+                    submitted2 = st.form_submit_button("Klimakommunikation wählen")
+                    if submitted2:
+                        execute(
+                            "INSERT OR REPLACE INTO strategic_decisions (run_id, period, decision_type, decision_value) VALUES (?, ?, ?, ?)",
+                            (run_id, 5, "climate", "Bewusstsein" if "Bewusstsein" in climate else "Angst" if "Angst" in climate else "Nichts")
+                        )
+                        st.success(f"Klimakommunikation '{climate}' gewählt!")
+
+        elif current_period == 6:
+            st.info("Periode 6: Strategische Entscheidungen")
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.subheader("Reparaturrecht")
+                with st.form("repair_decision"):
+                    repair = st.radio(
+                        "Reparaturrecht",
+                        ["Minimum", "Garantieverlängerung (empfohlen)", "Neue EU-Richtlinie"],
+                        help="Garantieverlängerung gibt BSC-Boost für Kundenzufriedenheit"
+                    )
+                    submitted1 = st.form_submit_button("Reparaturrecht wählen")
+                    if submitted1:
+                        execute(
+                            "INSERT OR REPLACE INTO strategic_decisions (run_id, period, decision_type, decision_value) VALUES (?, ?, ?, ?)",
+                            (run_id, 6, "repair", "Garantie" if "Garantie" in repair else "Minimum" if "Minimum" in repair else "EU")
+                        )
+                        st.success(f"Reparaturrecht '{repair}' gewählt!")
+
+            with col2:
+                st.subheader("Patentmanagement")
+                with st.form("patent_decision"):
+                    patent = st.radio(
+                        "Patentmanagement",
+                        ["Nichts", "Patentanmeldung (empfohlen)", "Offenlegung"],
+                        help="Patentanmeldung stärkt Innovation und BSC"
+                    )
+                    submitted2 = st.form_submit_button("Patentmanagement wählen")
+                    if submitted2:
+                        execute(
+                            "INSERT OR REPLACE INTO strategic_decisions (run_id, period, decision_type, decision_value) VALUES (?, ?, ?, ?)",
+                            (run_id, 6, "patent", "Patent" if "Patent" in patent else "Nichts" if "Nichts" in patent else "Offenlegung")
+                        )
+                        st.success(f"Patentmanagement '{patent}' gewählt!")
+
+        elif current_period == 7:
+            st.info("Periode 7: Strategische Entscheidungen")
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.subheader("Doktorand:in")
+                with st.form("phd_decision"):
+                    phd = st.radio(
+                        "Doktorand:in",
+                        ["Hochschule Technik (empfohlen)", "Hochschule Gestaltung", "Hochschule Ökonomie"],
+                        help="Hochschule Technik gibt BSC-Boost für Innovation"
+                    )
+                    submitted1 = st.form_submit_button("Doktorand:in wählen")
+                    if submitted1:
+                        execute(
+                            "INSERT OR REPLACE INTO strategic_decisions (run_id, period, decision_type, decision_value) VALUES (?, ?, ?, ?)",
+                            (run_id, 7, "phd", "Technik" if "Technik" in phd else "Gestaltung" if "Gestaltung" in phd else "Ökonomie")
+                        )
+                        st.success(f"Doktorand:in '{phd}' gewählt!")
+
+            with col2:
+                st.subheader("Compliance")
+                with st.form("compliance_decision"):
+                    compliance = st.radio(
+                        "Compliance",
+                        ["Freiheiten", "Richtlinien (empfohlen)", "Überwachung"],
+                        help="Richtlinien geben BSC-Boost für Vertrauen"
+                    )
+                    submitted2 = st.form_submit_button("Compliance wählen")
+                    if submitted2:
+                        execute(
+                            "INSERT OR REPLACE INTO strategic_decisions (run_id, period, decision_type, decision_value) VALUES (?, ?, ?, ?)",
+                            (run_id, 7, "compliance", "Richtlinien" if "Richtlinien" in compliance else "Freiheiten" if "Freiheiten" in compliance else "Überwachung")
+                        )
+                        st.success(f"Compliance '{compliance}' gewählt!")
+
+        elif current_period == 8:
+            st.info("Periode 8: Strategische Entscheidungen")
+            col1, col2 = st.columns(2)
+
+            with col1:
+                st.subheader("CSR")
+                with st.form("csr_decision"):
+                    csr = st.radio(
+                        "CSR",
+                        ["Solidaritätsabgabe", "Vereinssponsoring", "Gesundheitsprogramm (empfohlen)"],
+                        help="Gesundheitsprogramm gibt BSC-Boost für Mitarbeiterwohl"
+                    )
+                    submitted1 = st.form_submit_button("CSR wählen")
+                    if submitted1:
+                        execute(
+                            "INSERT OR REPLACE INTO strategic_decisions (run_id, period, decision_type, decision_value) VALUES (?, ?, ?, ?)",
+                            (run_id, 8, "csr", "Gesundheit" if "Gesundheit" in csr else "Solidaritaet" if "Solidaritaet" in csr else "Sponsoring")
+                        )
+                        st.success(f"CSR '{csr}' gewählt!")
+
+            with col2:
+                st.subheader("Wetterinformationen")
+                with st.form("weather_decision"):
+                    weather = st.radio(
+                        "Wetterinformationen",
+                        ["Kein Zukauf", "Rohdaten kaufen (empfohlen)", "KI-Software"],
+                        help="Rohdaten kaufen stärkt Innovation und BSC"
+                    )
+                    submitted2 = st.form_submit_button("Wetterinformationen wählen")
+                    if submitted2:
+                        execute(
+                            "INSERT OR REPLACE INTO strategic_decisions (run_id, period, decision_type, decision_value) VALUES (?, ?, ?, ?)",
+                            (run_id, 8, "weather", "Rohdaten" if "Rohdaten" in weather else "Kein" if "Kein" in weather else "KI")
+                        )
+                        st.success(f"Wetterinformationen '{weather}' gewählt!")
+
+        else:
+            st.info("Alle strategischen Entscheidungen wurden getroffen!")
+
 elif menu == "Neuer Run":
     st.subheader("Neuen Run anlegen")
     with st.form("new_run_form", clear_on_submit=True):
@@ -384,24 +671,36 @@ elif menu == "Periode eintragen":
                 max_value=2000.0,
                 value=float(defaults.get("price1") or 579.0),
             )
-            price2 = col1.number_input(
-                "Preis Markt 2",
-                min_value=0.0,
-                max_value=2000.0,
-                value=float(defaults.get("price2") or 559.0),
-            )
+
+            # Markt 2 nur ab Periode 5
+            if period >= 5:
+                price2 = col1.number_input(
+                    "Preis Markt 2",
+                    min_value=0.0,
+                    max_value=2000.0,
+                    value=float(defaults.get("price2") or 559.0),
+                )
+            else:
+                price2 = 0.0  # Default für frühere Perioden
+
             qty1 = col2.number_input(
                 "Menge Markt 1",
                 min_value=0,
                 max_value=50000,
                 value=int(defaults.get("qty1") or 4000),
             )
-            qty2 = col2.number_input(
-                "Menge Markt 2",
-                min_value=0,
-                max_value=50000,
-                value=int(defaults.get("qty2") or 500),
-            )
+
+            # Markt 2 nur ab Periode 5
+            if period >= 5:
+                qty2 = col2.number_input(
+                    "Menge Markt 2",
+                    min_value=0,
+                    max_value=50000,
+                    value=int(defaults.get("qty2") or 500),
+                )
+            else:
+                qty2 = 0  # Default für frühere Perioden
+
             ads = col2.number_input(
                 "Werbung",
                 min_value=0,
