@@ -4,9 +4,10 @@ Entscheidungshilfe für Jugend Gründet Teams - BSC optimieren, besser entscheid
 
 ## Was ist das?
 
-Ein einfaches, praktisches Tool für Jugend Gründet Teams, das hilft:
+Ein einfaches, praktisches Tool für Jugend Gründet Teams, das die echte Spiel-Logik von Jugend Gründet korrekt abbildet:
 - Runs und Perioden zu tracken
 - BSC und Gewinn zu analysieren
+- Strategische Entscheidungen periodengerecht zu treffen
 - Schnelle Entscheidungshilfen zu bekommen
 - Aus vergangenen Runs zu lernen
 
@@ -16,6 +17,7 @@ Ein einfaches, praktisches Tool für Jugend Gründet Teams, das hilft:
 - **Nicht zu konservativ sein** - zu wenig Mitarbeiter/Innovation kann trotz gutem Gewinn zum Verlust führen
 - **Werbung wirkt langfristig** - früh investieren lohnt sich
 - **Prozessbudget ist wichtig** - effiziente Abläufe zahlen sich aus
+- **Markt 2 kommt erst ab Periode 5** - frühere Perioden haben nur Markt 1
 
 ## Dateien
 
