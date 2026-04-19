@@ -1696,44 +1696,37 @@ with tab6:
                     st.success(f"� Code: {team_code}")
                     st.rerun()
 
-    # Team-Verwaltung (versteckt für Datenschutz)
+    # Team-Verwaltung (öffentlich für alle)
     if not teams_df.empty:
         st.markdown("**Team-Verwaltung:**")
         current_team_count = len(teams_df)
-        st.info(f"Du hast {current_team_count} Team(s) erstellt")
+        st.info(f"Es gibt {current_team_count} Team(s) insgesamt")
 
-        # Debug: Zeige nur Teams des aktuellen Benutzers
-        user_teams = teams_df[teams_df['created_by_device'] == st.session_state.device_id]
-        if not user_teams.empty:
-            with st.expander("📋 Deine Teams (privat)"):
-                for _, team in user_teams.iterrows():
-                    st.write(f"**{team['team_name']}** - Code: `{team['team_code']}`")
-        else:
-            st.info("Du hast noch keine Teams erstellt.")
+        # Zeige alle Teams für alle Benutzer
+        st.markdown("**Alle verfügbaren Teams:**")
+        for _, team in teams_df.iterrows():
+            is_current_team = (st.session_state.team_code == team['team_code'] and not st.session_state.private_mode)
+            creator_indicator = " (von dir erstellt)" if team['created_by_device'] == st.session_state.device_id else ""
 
-        # Team-Code Eingabe für Löschung
-        delete_team_code = st.text_input("Team-Code zum Löschen", key="delete_team_code", placeholder="TEAM-ABC123 oder ABC123")
-        if st.button("🗑️ Team löschen", use_container_width=True, disabled=not delete_team_code.strip()):
-            if delete_team_code.strip():
-                input_code = delete_team_code.strip().upper()
-
-                # Automatisch "TEAM-" Prefix hinzufügen wenn nicht vorhanden
-                if not input_code.startswith("TEAM-"):
-                    team_code = f"TEAM-{input_code}"
+            col1, col2, col3 = st.columns([3, 1, 1])
+            with col1:
+                if is_current_team:
+                    st.success(f"🎯 **{team['team_name']}**{creator_indicator} - AKTIV")
                 else:
-                    team_code = input_code
+                    st.info(f"👥 {team['team_name']} {creator_indicator}")
 
-                team_data = query_df("SELECT * FROM teams WHERE team_code = ?", (team_code,))
-                if team_data.empty:
-                    st.error(f"❌ Team-Code '{team_code}' nicht gefunden!")
-                    st.info("💡 **Mögliche Ursachen:**")
-                    st.info("• Team-Code ist falsch geschrieben")
-                    st.info("• Team wurde bereits gelöscht")
-                    st.info("• Team wurde von jemand anderem erstellt")
-                    st.info(f"**Du hast eingegeben:** {input_code}")
-                    st.info(f"**Gesucht wird:** {team_code}")
-                else:
-                    team_name = team_data.iloc[0]['team_name']
+            with col2:
+                if not is_current_team:
+                    if st.button("🔗", key=f"join_{team['team_code']}", help=f"Team {team['team_name']} beitreten"):
+                        st.session_state.team_code = team['team_code']
+                        st.session_state.private_mode = False
+                        st.success(f"✅ Team '{team['team_name']}' beigetreten!")
+                        st.rerun()
+
+            with col3:
+                if st.button("🗑️", key=f"delete_{team['team_code']}", help=f"Team {team['team_name']} löschen"):
+                    team_name = team['team_name']
+                    team_code = team['team_code']
                     # Bestätigung
                     confirm_key = f"confirm_delete_{team_code}"
                     if confirm_key not in st.session_state:
