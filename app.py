@@ -178,6 +178,19 @@ init_db()
 if 'team_code' not in st.session_state:
     st.session_state.team_code = None
 
+# AUTOMATISCHE GERÄTE-BASIERTE TRENNUNG für echte Privatsphäre
+if 'device_id' not in st.session_state:
+    # Erstelle eine eindeutige Device-ID basierend auf Session-Info
+    import hashlib
+    import time
+    device_seed = f"{time.time()}_{secrets.token_hex(8)}"
+    st.session_state.device_id = hashlib.md5(device_seed.encode()).hexdigest()[:8].upper()
+    st.session_state.device_id = f"DEVICE-{st.session_state.device_id}"
+
+# Wenn kein expliziter Team-Code gesetzt ist, verwende Device-ID für automatische Trennung
+if st.session_state.team_code is None:
+    st.session_state.team_code = st.session_state.device_id
+
 st.set_page_config(
     page_title="Planspiel Tracker JG",
     layout="wide",
