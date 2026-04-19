@@ -174,11 +174,14 @@ def save_period(
 
 init_db()
 
-# SESSION STATE für Team-Kollaboration
+# SESSION STATE für Team-Kollaboration und Privatmodus
 if 'team_code' not in st.session_state:
     st.session_state.team_code = None
 
-# AUTOMATISCHE GERÄTE-BASIERTE TRENNUNG für echte Privatsphäre
+if 'private_mode' not in st.session_state:
+    st.session_state.private_mode = True  # Start im Privatmodus
+
+# AUTOMATISCHE GERÄTE-BASIERTE TRENNUNG nur wenn nicht im expliziten Privatmodus
 if 'device_id' not in st.session_state:
     # Erstelle eine eindeutige Device-ID basierend auf Session-Info
     import hashlib
@@ -187,8 +190,8 @@ if 'device_id' not in st.session_state:
     st.session_state.device_id = hashlib.md5(device_seed.encode()).hexdigest()[:8].upper()
     st.session_state.device_id = f"DEVICE-{st.session_state.device_id}"
 
-# Wenn kein expliziter Team-Code gesetzt ist, verwende Device-ID für automatische Trennung
-if st.session_state.team_code is None:
+# Logik für automatische Trennung nur wenn nicht im expliziten Privatmodus
+if st.session_state.team_code is None and not st.session_state.private_mode:
     st.session_state.team_code = st.session_state.device_id
 
 st.set_page_config(
@@ -664,7 +667,7 @@ def get_runs_with_team_filter():
 
     # Query based on column availability
     if column_exists:
-        if st.session_state.team_code:
+        if st.session_state.team_code and not st.session_state.private_mode:
             # Team mode: show ONLY runs with this specific team code
             return query_df("SELECT * FROM runs WHERE team_code = ? ORDER BY id DESC", (st.session_state.team_code,))
         else:
@@ -696,19 +699,22 @@ with col2:
         with st.popover("Team-Einstellungen"):
             st.markdown("### Team-Kollaboration")
 
-            if st.session_state.team_code:
+            if st.session_state.team_code and not st.session_state.private_mode:
                 st.success(f"**Aktives Team:** {st.session_state.team_code}")
                 if st.button("🔄 Team verlassen", type="secondary"):
                     st.session_state.team_code = None
-                    st.success("Team verlassen!")
+                    st.session_state.private_mode = True
+                    st.success("Team verlassen - zurück im Privatmodus!")
                     st.rerun()
-            else:
-                st.markdown("**Team-Code eingeben oder generieren:**")
+            elif st.session_state.private_mode:
+                st.info("**Privatmodus aktiv** - nur deine privaten Daten")
+                st.markdown("**Team beitreten:**")
 
                 team_input = st.text_input("Team-Code eingeben", placeholder="z.B. TEAM-ABC123")
                 if st.button("🔗 Team beitreten", disabled=not team_input.strip()):
                     if team_input.strip():
                         st.session_state.team_code = team_input.strip().upper()
+                        st.session_state.private_mode = False
                         st.success(f"Team '{st.session_state.team_code}' beigetreten!")
                         st.rerun()
 
@@ -716,6 +722,37 @@ with col2:
                 if st.button("🎲 Neuen Team-Code generieren"):
                     new_team_code = f"TEAM-{secrets.token_hex(3).upper()}"
                     st.session_state.team_code = new_team_code
+                    st.session_state.private_mode = False
+                    st.success(f"**Neuer Team-Code erstellt:** {new_team_code}")
+                    st.info("Teile diesen Code mit deinen Teammitgliedern!")
+                    st.rerun()
+            else:
+                # Device mode (automatic)
+                st.info(f"**Geräte-Modus:** {st.session_state.device_id}")
+                st.markdown("**Privatmodus aktivieren oder Team beitreten:**")
+
+                if st.button("🔒 Privatmodus", type="primary"):
+                    st.session_state.team_code = None
+                    st.session_state.private_mode = True
+                    st.success("Privatmodus aktiviert - nur deine privaten Daten!")
+                    st.rerun()
+
+                st.markdown("---")
+                st.markdown("**Team beitreten:**")
+
+                team_input = st.text_input("Team-Code eingeben", placeholder="z.B. TEAM-ABC123")
+                if st.button("🔗 Team beitreten", disabled=not team_input.strip()):
+                    if team_input.strip():
+                        st.session_state.team_code = team_input.strip().upper()
+                        st.session_state.private_mode = False
+                        st.success(f"Team '{st.session_state.team_code}' beigetreten!")
+                        st.rerun()
+
+                st.markdown("---")
+                if st.button("🎲 Neuen Team-Code generieren"):
+                    new_team_code = f"TEAM-{secrets.token_hex(3).upper()}"
+                    st.session_state.team_code = new_team_code
+                    st.session_state.private_mode = False
                     st.success(f"**Neuer Team-Code erstellt:** {new_team_code}")
                     st.info("Teile diesen Code mit deinen Teammitgliedern!")
                     st.rerun()
