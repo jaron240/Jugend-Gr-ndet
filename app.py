@@ -1654,17 +1654,19 @@ with tab6:
                 st.rerun()
 
     with col3:
-        team_code_input = st.text_input("Team-Code", key="team_code_minimal")
+        team_code_input = st.text_input("Team-Code eingeben", placeholder="z.B. TEAM-ABC123", key="team_code_minimal")
         if st.button("🔗 Beitreten", use_container_width=True, disabled=not team_code_input.strip()):
             if team_code_input.strip():
                 team_code = team_code_input.strip().upper()
                 team_data = query_df("SELECT * FROM teams WHERE team_code = ?", (team_code,))
                 if team_data.empty:
-                    st.error("❌ Team nicht gefunden!")
+                    st.error(f"❌ Team-Code '{team_code}' nicht gefunden!")
+                    st.info("💡 Stelle sicher, dass du den **genauen Team-Code** eingibst (z.B. TEAM-ABC123)")
                 else:
+                    team_name = team_data.iloc[0]['team_name']
                     st.session_state.team_code = team_code
                     st.session_state.private_mode = False
-                    st.success(f"✅ Team beigetreten!")
+                    st.success(f"✅ Team '{team_name}' beigetreten!")
                     st.rerun()
 
     with col4:
@@ -1672,45 +1674,38 @@ with tab6:
             st.success("🔄 Ansicht aktualisiert!")
             st.rerun()
 
-    # Team-Liste mit Löschfunktion
+    # Team-Verwaltung (versteckt für Datenschutz)
     if not teams_df.empty:
-        st.markdown("**Deine Teams:**")
-        for _, team in teams_df.iterrows():
-            is_current_team = (st.session_state.team_code == team['team_code'] and not st.session_state.private_mode)
+        st.markdown("**Team-Verwaltung:**")
+        current_team_count = len(teams_df)
+        st.info(f"Du hast {current_team_count} Team(s) erstellt")
 
-            col1, col2, col3 = st.columns([3, 1, 1])
-            with col1:
-                if is_current_team:
-                    st.success(f"🎯 **{team['team_name']}** (aktiv)")
+        # Team-Code Eingabe für Löschung
+        delete_team_code = st.text_input("Team-Code zum Löschen", key="delete_team_code", placeholder="TEAM-ABC123")
+        if st.button("🗑️ Team löschen", use_container_width=True, disabled=not delete_team_code.strip()):
+            if delete_team_code.strip():
+                team_code = delete_team_code.strip().upper()
+                team_data = query_df("SELECT * FROM teams WHERE team_code = ?", (team_code,))
+                if team_data.empty:
+                    st.error("❌ Team nicht gefunden!")
                 else:
-                    st.info(f"👥 {team['team_name']}")
-
-            with col2:
-                if not is_current_team:
-                    if st.button("🔗", key=f"join_{team['team_code']}", help="Beitreten"):
-                        st.session_state.team_code = team['team_code']
-                        st.session_state.private_mode = False
-                        st.success(f"✅ Team beigetreten!")
-                        st.rerun()
-
-            with col3:
-                if st.button("🗑️", key=f"delete_{team['team_code']}", help="Löschen"):
+                    team_name = team_data.iloc[0]['team_name']
                     # Bestätigung
-                    confirm_key = f"confirm_delete_{team['team_code']}"
+                    confirm_key = f"confirm_delete_{team_code}"
                     if confirm_key not in st.session_state:
                         st.session_state[confirm_key] = False
 
                     if not st.session_state[confirm_key]:
-                        st.warning(f"Team '{team['team_name']}' wirklich löschen?")
-                        if st.button("✅ Ja, löschen", key=f"confirm_yes_{team['team_code']}"):
+                        st.warning(f"Team '{team_name}' ({team_code}) wirklich löschen?")
+                        if st.button("✅ Ja, löschen", key=f"confirm_yes_{team_code}"):
                             st.session_state[confirm_key] = True
                             st.rerun()
                     else:
                         # Lösche Team
-                        execute("DELETE FROM teams WHERE team_code = ?", (team['team_code'],))
+                        execute("DELETE FROM teams WHERE team_code = ?", (team_code,))
                         # Lösche alle Runs dieses Teams
-                        execute("DELETE FROM runs WHERE team_code = ?", (team['team_code'],))
-                        st.success(f"✅ Team '{team['team_name']}' gelöscht!")
+                        execute("DELETE FROM runs WHERE team_code = ?", (team_code,))
+                        st.success(f"✅ Team '{team_name}' gelöscht!")
                         st.rerun()
 
     st.markdown("---")
