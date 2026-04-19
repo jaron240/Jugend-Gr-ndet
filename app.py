@@ -1,5 +1,6 @@
 import json
 import sqlite3
+import secrets
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -29,7 +30,8 @@ def init_db() -> None:
                 end_bsc REAL DEFAULT 0,
                 end_profit REAL DEFAULT 0,
                 place INTEGER DEFAULT 0,
-                current_period INTEGER DEFAULT 1
+                current_period INTEGER DEFAULT 1,
+                team_code TEXT
             );
 
             CREATE TABLE IF NOT EXISTS periods(
@@ -171,6 +173,10 @@ def save_period(
 
 
 init_db()
+
+# SESSION STATE für Team-Kollaboration
+if 'team_code' not in st.session_state:
+    st.session_state.team_code = None
 
 st.set_page_config(
     page_title="Planspiel Tracker JG",
@@ -625,15 +631,57 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-runs_df = query_df("SELECT * FROM runs ORDER BY id DESC")
+# TEAM-FILTERING: Zeige nur Runs des aktiven Teams oder alle Runs wenn kein Team aktiv
+if st.session_state.team_code:
+    runs_df = query_df("SELECT * FROM runs WHERE team_code = ? ORDER BY id DESC", (st.session_state.team_code,))
+else:
+    runs_df = query_df("SELECT * FROM runs WHERE team_code IS NULL OR team_code = '' ORDER BY id DESC")
 
-# KOMPAKTER HEADER
+# KOMPAKTER HEADER MIT TEAM-FUNKTIONALITÄT
 st.title("🎯 Planspiel Tracker JG")
 st.caption("Live-Entscheidungshilfe für Jugend Gründet Teams")
 
-# Backup Button in der Ecke
-col1, col2, col3 = st.columns([4, 1, 1])
+# Team-Status und Backup
+col1, col2, col3, col4 = st.columns([3, 1, 1, 1])
+
+with col1:
+    # Team-Status Anzeige
+    if st.session_state.team_code:
+        st.success(f"👥 Team-Modus aktiv: {st.session_state.team_code}")
+    else:
+        st.info("🔒 Privater Modus - nur deine Daten")
+
 with col2:
+    # Team-Code Eingabe/Generierung
+    if st.button("👥 Team", help="Team-Code verwalten"):
+        with st.popover("Team-Einstellungen"):
+            st.markdown("### Team-Kollaboration")
+
+            if st.session_state.team_code:
+                st.success(f"**Aktives Team:** {st.session_state.team_code}")
+                if st.button("🔄 Team verlassen", type="secondary"):
+                    st.session_state.team_code = None
+                    st.success("Team verlassen!")
+                    st.rerun()
+            else:
+                st.markdown("**Team-Code eingeben oder generieren:**")
+
+                team_input = st.text_input("Team-Code eingeben", placeholder="z.B. TEAM-ABC123")
+                if st.button("🔗 Team beitreten", disabled=not team_input.strip()):
+                    if team_input.strip():
+                        st.session_state.team_code = team_input.strip().upper()
+                        st.success(f"Team '{st.session_state.team_code}' beigetreten!")
+                        st.rerun()
+
+                st.markdown("---")
+                if st.button("🎲 Neuen Team-Code generieren"):
+                    new_team_code = f"TEAM-{secrets.token_hex(3).upper()}"
+                    st.session_state.team_code = new_team_code
+                    st.success(f"**Neuer Team-Code erstellt:** {new_team_code}")
+                    st.info("Teile diesen Code mit deinen Teammitgliedern!")
+                    st.rerun()
+
+with col3:
     st.download_button(
         "💾 Backup",
         data=build_backup_json(),
@@ -835,8 +883,11 @@ with tab2:
     # Neuer Run Button
     if st.button("➕ Neuer Run", type="primary"):
         new_name = f"Run {len(runs_df) + 1}"
-        execute("INSERT INTO runs(name, end_bsc, end_profit, place) VALUES(?, ?, ?, ?)", (new_name, 0, 0, 0))
-        st.success(f"Run '{new_name}' erstellt!")
+        # Run mit Team-Code verknüpfen falls aktiv
+        team_code = st.session_state.team_code if st.session_state.team_code else None
+        execute("INSERT INTO runs(name, end_bsc, end_profit, place, team_code) VALUES(?, ?, ?, ?, ?)",
+                (new_name, 0, 0, 0, team_code))
+        st.success(f"Run '{new_name}' erstellt!" + (f" (Team: {team_code})" if team_code else ""))
         st.rerun()
 
     if selected_run:
