@@ -181,104 +181,90 @@ st.set_page_config(
 st.markdown(
     """
     <style>
+    /* DARK MODE - SCHÖN & LESBAR */
     .stApp {
-        background: #f8fafc;
-        color: #1e293b;
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+        color: #f1f5f9;
+        font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.6;
     }
-    .block-container {
-        padding-top: 1rem;
-        padding-bottom: 2rem;
-        max-width: 1400px;
-    }
+
+    /* HEADER - ELEGANTE GRADIENT */
     .main-header {
-        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 50%, #1e40af 100%);
         color: white;
-        padding: 2rem;
-        border-radius: 16px;
+        padding: 3rem 2rem;
+        border-radius: 20px;
         margin-bottom: 2rem;
         text-align: center;
-        box-shadow: 0 10px 40px rgba(30, 64, 175, 0.2);
+        box-shadow: 0 20px 60px rgba(59, 130, 246, 0.15);
         position: relative;
         overflow: hidden;
     }
     .main-header::before {
         content: '';
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-        opacity: 0.1;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+        animation: pulse 4s ease-in-out infinite;
     }
     .main-header h1 {
         position: relative;
-        z-index: 1;
+        z-index: 2;
         margin: 0;
-        font-size: 2.5rem;
-        font-weight: 700;
+        font-size: 3rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.3);
     }
     .main-header p {
         position: relative;
-        z-index: 1;
-        margin: 0.5rem 0 0;
-        font-size: 1.1rem;
-        opacity: 0.9;
+        z-index: 2;
+        margin: 1rem 0 0;
+        font-size: 1.2rem;
+        opacity: 0.95;
+        font-weight: 400;
     }
-    .dashboard-card {
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin: 1rem 0;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
+
+    /* KARTEN - GLAS-EFFEKT */
+    .dashboard-card, .metric-card, .input-section, .decision-card, .settings-panel {
+        background: rgba(30, 41, 59, 0.8);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        border-radius: 16px;
+        padding: 2rem;
+        margin: 1.5rem 0;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
-    .dashboard-card:hover {
-        box-shadow: 0 10px 25px -3px rgba(0, 0, 0, 0.1);
-        transform: translateY(-2px);
+    .dashboard-card:hover, .metric-card:hover, .decision-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        border-color: rgba(59, 130, 246, 0.3);
     }
-    .metric-card {
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 1.5rem;
-        text-align: center;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-        transition: all 0.3s ease;
-    }
-    .metric-card:hover {
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-    }
+
+    /* METRIKEN - KLAR & ELEGANT */
     .metric-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #1e40af;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #60a5fa;
         margin: 0.5rem 0;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.5);
     }
     .metric-label {
         font-size: 0.9rem;
-        color: #64748b;
+        color: #94a3b8;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
+        letter-spacing: 1px;
         margin: 0;
+        font-weight: 600;
     }
-    .input-section {
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 2rem;
-        margin: 1.5rem 0;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-    }
+
+    /* ENTSCHEIDUNGSKARTEN - FARBCODIERT */
     .decision-card {
-        background: white;
-        border: 2px solid #e2e8f0;
-        border-radius: 12px;
-        padding: 2rem;
-        margin: 1rem 0;
-        transition: all 0.3s ease;
         position: relative;
         overflow: hidden;
     }
@@ -287,132 +273,217 @@ st.markdown(
         position: absolute;
         top: 0;
         left: 0;
-        width: 4px;
+        width: 6px;
         height: 100%;
-        background: #3b82f6;
+        background: linear-gradient(180deg, #3b82f6 0%, #1d4ed8 100%);
+        border-radius: 0 4px 4px 0;
     }
-    .conservative { border-color: #10b981; }
-    .conservative::before { background: #10b981; }
-    .balanced { border-color: #f59e0b; }
-    .balanced::before { background: #f59e0b; }
-    .aggressive { border-color: #ef4444; }
-    .aggressive::before { background: #ef4444; }
-    .decision-card:hover {
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-        transform: translateY(-2px);
-    }
-    .strategy-section {
-        background: #f1f5f9;
-        border-radius: 12px;
-        padding: 2rem;
-        margin: 1.5rem 0;
-        border-left: 4px solid #3b82f6;
-    }
-    .warning-alert {
-        background: #fef3c7;
-        border: 1px solid #f59e0b;
-        border-radius: 8px;
-        padding: 1rem;
-        margin: 1rem 0;
-        color: #92400e;
-    }
-    .success-alert {
-        background: #d1fae5;
-        border: 1px solid #10b981;
-        border-radius: 8px;
-        padding: 1rem;
-        margin: 1rem 0;
-        color: #065f46;
-    }
+    .conservative::before { background: linear-gradient(180deg, #10b981 0%, #059669 100%); }
+    .balanced::before { background: linear-gradient(180deg, #f59e0b 0%, #d97706 100%); }
+    .aggressive::before { background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%); }
+
+    /* BUTTONS - MODERN & INTERAKTIV */
     .stButton button {
-        background: #3b82f6;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
         color: white;
         border: none;
-        border-radius: 8px;
-        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        padding: 1rem 2rem;
         font-weight: 600;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+        font-size: 1rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+    .stButton button::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+    }
+    .stButton button:hover::before {
+        left: 100%;
     }
     .stButton button:hover {
-        background: #2563eb;
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        transform: translateY(-1px);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
     }
-    .stButton button:active {
-        transform: translateY(0);
-    }
+
     .delete-btn button {
-        background: #dc2626;
+        background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        box-shadow: 0 4px 16px rgba(220, 38, 38, 0.3);
     }
     .delete-btn button:hover {
-        background: #b91c1c;
-        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        box-shadow: 0 8px 25px rgba(220, 38, 38, 0.4);
     }
-    .primary-btn button {
-        background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
-        font-size: 1.1rem;
-        padding: 1rem 2rem;
-    }
+
+    /* FORM ELEMENTE - DARK THEME */
     .stSelectbox, .stNumberInput, .stSlider, .stTextInput {
-        background: white;
-        border: 1px solid #d1d5db;
-        border-radius: 8px;
-        padding: 0.5rem;
+        background: rgba(51, 65, 85, 0.8);
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        border-radius: 12px;
+        color: #f1f5f9;
+        padding: 0.75rem;
         transition: all 0.3s ease;
+        backdrop-filter: blur(10px);
     }
     .stSelectbox:hover, .stNumberInput:hover, .stSlider:hover, .stTextInput:hover {
-        border-color: #9ca3af;
+        border-color: #3b82f6;
         box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        background: rgba(51, 65, 85, 0.9);
     }
+
+    /* TABS - ELEGANTE NAVIGATION */
     .stTabs [data-baseweb="tab-list"] {
-        background: white;
-        border-radius: 12px;
-        padding: 0.5rem;
-        border: 1px solid #e2e8f0;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        background: rgba(30, 41, 59, 0.6);
+        backdrop-filter: blur(20px);
+        border-radius: 16px;
+        padding: 0.75rem;
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        gap: 0.5rem;
     }
     .stTabs [data-baseweb="tab"] {
-        color: #64748b;
-        border-radius: 8px;
-        margin: 0 0.25rem;
-        padding: 0.75rem 1rem;
-        font-weight: 500;
-        transition: all 0.3s ease;
+        color: #94a3b8;
+        border-radius: 12px;
+        margin: 0;
+        padding: 1rem 1.5rem;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    .stTabs [data-baseweb="tab"]::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+        transition: left 0.5s;
+    }
+    .stTabs [data-baseweb="tab"]:hover::before {
+        left: 100%;
     }
     .stTabs [data-baseweb="tab"]:hover {
         color: #3b82f6;
-        background: #f1f5f9;
+        background: rgba(59, 130, 246, 0.1);
     }
     .stTabs [data-baseweb="tab"][aria-selected="true"] {
-        background: #3b82f6;
+        background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
         color: white;
-        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        box-shadow: 0 4px 20px rgba(59, 130, 246, 0.4);
+        transform: translateY(-1px);
     }
+
+    /* DATAFRAME - DARK THEME */
     .stDataFrame {
         border-radius: 12px;
         overflow: hidden;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
     }
-    .settings-panel {
-        background: white;
-        border: 1px solid #e2e8f0;
+    .stDataFrame [data-testid="stDataFrame"] {
+        background: rgba(30, 41, 59, 0.8);
+        border: 1px solid rgba(148, 163, 184, 0.1);
+    }
+
+    /* ALERTS - SCHÖN GESTALTET */
+    .warning-alert {
+        background: rgba(245, 101, 101, 0.1);
+        border: 1px solid rgba(245, 101, 101, 0.3);
         border-radius: 12px;
-        padding: 2rem;
-        margin: 1.5rem 0;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        padding: 1.5rem;
+        margin: 1rem 0;
+        color: #fca5a5;
+        backdrop-filter: blur(10px);
     }
+    .success-alert {
+        background: rgba(16, 185, 129, 0.1);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        color: #6ee7b7;
+        backdrop-filter: blur(10px);
+    }
+
+    /* FILE UPLOAD - ELEGANTE GESTALTUNG */
     .file-upload {
-        border: 2px dashed #cbd5e1;
-        border-radius: 8px;
-        padding: 2rem;
+        border: 2px dashed rgba(148, 163, 184, 0.5);
+        border-radius: 12px;
+        padding: 3rem;
         text-align: center;
-        background: #f8fafc;
+        background: rgba(51, 65, 85, 0.3);
+        backdrop-filter: blur(10px);
         transition: all 0.3s ease;
+        color: #94a3b8;
     }
     .file-upload:hover {
         border-color: #3b82f6;
-        background: #eff6ff;
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+    }
+
+    /* ANIMATIONS */
+    @keyframes pulse {
+        0%, 100% { opacity: 0.1; }
+        50% { opacity: 0.2; }
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .dashboard-card, .metric-card, .decision-card {
+        animation: fadeIn 0.6s ease-out;
+    }
+
+    /* RESPONSIVE DESIGN */
+    @media (max-width: 768px) {
+        .main-header h1 {
+            font-size: 2rem;
+        }
+        .metric-value {
+            font-size: 2rem;
+        }
+        .stTabs [data-baseweb="tab"] {
+            padding: 0.75rem 1rem;
+            font-size: 0.85rem;
+        }
+    }
+
+    /* TEXT LESBARKEIT SICHERSTELLEN */
+    .stMarkdown, .stText, p, span, div {
+        color: #f1f5f9 !important;
+    }
+
+    .stSelectbox div[data-baseweb="select"] span, .stNumberInput input, .stTextInput input {
+        color: #f1f5f9 !important;
+    }
+
+    /* SICHERSTELLEN DASS ALLES LESBAR IST */
+    * {
+        color: #f1f5f9;
+    }
+
+    .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4 {
+        color: #f1f5f9 !important;
+        font-weight: 700;
+    }
+
+    .stSuccess, .stWarning, .stError, .stInfo {
+        background: rgba(30, 41, 59, 0.8) !important;
+        color: #f1f5f9 !important;
+        border-radius: 12px !important;
+        border: 1px solid rgba(148, 163, 184, 0.2) !important;
     }
     </style>
     """,
